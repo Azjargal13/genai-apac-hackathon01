@@ -54,18 +54,35 @@ Then set in `.env`:
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 ```
 
-### Option B: service account key JSON (less preferred)
+### Option B: service account key JSON (recommended when `gcloud` is unavailable)
 
-1. Create a service account with Firestore access.
-2. Download JSON key (sensitive).
-3. In `.env`:
+1. Create a service account (example: `energy-task-sa`).
+2. Grant IAM role: `roles/datastore.user`.
+3. Create/download JSON key (sensitive).
+4. Place it locally under repo `secrets/` (do not commit).
+5. In `.env`:
 
 ```bash
-GOOGLE_APPLICATION_CREDENTIALS=/workspaces/<repo>/secrets/firebase-sa.json
+GOOGLE_APPLICATION_CREDENTIALS=/workspaces/<repo>/secrets/energy-task-sa-key.json
 GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID
 ```
 
-Never commit key files.
+If you are on local Windows/Git Bash instead of Codespaces, use an absolute local path, for example:
+
+```bash
+GOOGLE_APPLICATION_CREDENTIALS=/c/Users/<you>/Documents/projects/<repo>/secrets/energy-task-sa-key.json
+```
+
+Never commit key files (`secrets/` must stay in `.gitignore`).
+
+#### Example IAM binding command
+
+```bash
+gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+  --member="serviceAccount:energy-task-sa@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+  --role="roles/datastore.user" \
+  --condition=None
+```
 
 ---
 
@@ -95,7 +112,29 @@ If you keep only one Firestore DB, `(default)` is fine.
 
 ---
 
-## 6) Firestore data model starter (recommended)
+## 6) Required composite indexes for this project
+
+The current query patterns in `tasks` require composite indexes.  
+Without these, Firestore returns: "The query requires an index".
+
+Create these indexes in Firebase/Firestore Console:
+
+1. Collection: `tasks`
+   - Fields:
+     - `user_id` ascending
+     - `created_at` descending
+2. Collection: `tasks`
+   - Fields:
+     - `status` ascending
+     - `user_id` ascending
+     - `created_at` descending
+
+Fastest path: when Firestore returns an index URL in API error, open it and click **Create index**.
+Wait until status is **Enabled**, then retry requests.
+
+---
+
+## 7) Firestore data model starter (recommended)
 
 Suggested collections:
 
@@ -110,7 +149,7 @@ This keeps insight calculations straightforward and auditable.
 
 ---
 
-## 7) Security rules and access model
+## 8) Security rules and access model
 
 For this backend-driven architecture:
 
@@ -121,7 +160,7 @@ If later you add direct Firebase client access (web/mobile), define explicit Fir
 
 ---
 
-## 8) Quick connectivity test (Python)
+## 9) Quick connectivity test (Python)
 
 Once credentials/project are configured:
 
@@ -140,23 +179,26 @@ If this fails with permission/auth errors, check:
 
 ---
 
-## 9) Common issues checklist
+## 10) Common issues checklist
 
 - Region mismatch between Cloud Run and Firestore (latency)
 - Missing `GOOGLE_CLOUD_PROJECT`
+- Wrong `GOOGLE_APPLICATION_CREDENTIALS` path for your environment (Codespaces vs local)
 - Using key JSON in Cloud Run unnecessarily
 - Not granting Firestore role to Cloud Run service account
+- Missing Firestore composite index for filtered + ordered task queries
 - Trying to change Firestore location after creation (not supported)
 
 ---
 
-## 10) Minimum config summary
+## 11) Minimum config summary
 
 For your current project, minimum is:
 
 1. Firestore Native DB created in your chosen region
 2. `GOOGLE_CLOUD_PROJECT` set
-3. Codespaces authenticated via ADC
-4. Cloud Run runtime SA has `roles/datastore.user`
+3. Valid local auth (ADC or `GOOGLE_APPLICATION_CREDENTIALS`)
+4. Required composite indexes for `tasks` created and enabled
+5. Cloud Run runtime SA has `roles/datastore.user`
 
 After this, you can start implementing `src/energy_task_manager/persistence/firestore.py`.
