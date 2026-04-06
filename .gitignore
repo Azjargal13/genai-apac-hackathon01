@@ -18,6 +18,7 @@ env/
 .vscode/
 .DS_Store
 Thumbs.db
+.adk
 
 # Test / coverage
 .pytest_cache/
