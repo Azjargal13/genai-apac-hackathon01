@@ -1,0 +1,40 @@
+# Connect this repo to Cloud Build (GitHub trigger). On push, build image → Artifact Registry → Cloud Run.
+# One-time GCP: create Artifact Registry repo (see CLOUD_DEPLOY.md), grant Cloud Build SA deploy permissions.
+
+substitutions:
+  _REGION: us-central1
+  _AR_REPOSITORY: app
+  _SERVICE_NAME: energy-task-manager
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest'
+      - .
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - $_SERVICE_NAME
+      - '--image'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA'
+      - '--region'
+      - $_REGION
+      - '--platform'
+      - managed
+      # Public HTTP for demos; remove and use IAM for production APIs
+      - '--allow-unauthenticated'
+      - '--quiet'
+
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest'

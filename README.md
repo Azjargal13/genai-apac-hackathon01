@@ -156,9 +156,14 @@ User → Orchestrator → Insight Agent
 | API | **FastAPI** (`uvicorn` on Cloud Run) |
 | Database | **Cloud Firestore** |
 | External integration | **Google Calendar API** (Python client; exposed to agents as tools) |
-| Deployment | **Google Cloud Run** |
+| Deployment | **Google Cloud Run** (image built by **Cloud Build** on **git push**) |
+| Remote dev | **GitHub Codespaces** + `.devcontainer` — see [CODESPACES.md](CODESPACES.md) |
 | Local secrets | **`.env`** (not committed); copy from `.env.example` |
 | Production secrets | **Secret Manager** + Cloud Run env / volume references |
+
+**Push → deploy:** connect the repo to **Cloud Build** and use [CLOUD_DEPLOY.md](CLOUD_DEPLOY.md) (trigger on `main`, `cloudbuild.yaml` builds `Dockerfile` and deploys to Run).
+
+**Rough monthly cost (GCP + GitHub Codespaces + Gemini):** [BILLING_ESTIMATE.md](BILLING_ESTIMATE.md) (illustrative; use Google’s pricing calculator and GitHub’s Codespaces billing docs for real quotes).
 
 ---
 
@@ -176,9 +181,18 @@ hackathon01/
 │       ├── integrations/        # Google Calendar API client code
 │       └── persistence/         # Firestore repositories & schemas
 ├── tests/
+├── .devcontainer/
+│   └── devcontainer.json        # GitHub Codespaces: Python + pip install + PYTHONPATH
+├── scripts/
+│   └── bootstrap-venv.sh        # Optional: project .venv (Codespaces or Linux)
+├── CODESPACES.md                # Dev environment: GitHub Codespaces + ADK / FastAPI
+├── CLOUD_DEPLOY.md              # GitHub → Cloud Build → Cloud Run (one-time setup)
+├── BILLING_ESTIMATE.md          # Rough monthly cost (Codespaces + GCP + Gemini)
+├── cloudbuild.yaml              # Build image + deploy Run (used by trigger)
+├── Dockerfile                   # Container for Cloud Run
 ├── .env.example                 # Variable names only (no real secrets)
-├── Dockerfile                   # (add when containerizing for Cloud Run)
-└── requirements.txt or pyproject.toml   # (add when pinning dependencies)
+├── requirements.txt             # Python deps
+└── pyproject.toml               # (optional)
 ```
 
 Diagrams and problem statement stay at repo root (`multi-agent-architecture.drawio`, `PROBLEM_STATEMENT.md`).

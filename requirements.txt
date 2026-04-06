@@ -1,0 +1,8 @@
+# Install in Codespaces (postCreateCommand), local venv, or container — see CODESPACES.md
+google-adk
+fastapi
+uvicorn[standard]
+google-cloud-firestore
+google-api-python-client
+google-auth
+python-dotenv
