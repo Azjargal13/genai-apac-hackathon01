@@ -1,10 +1,17 @@
 """FastAPI application entrypoint (Cloud Run serves this module)."""
 
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from dotenv import load_dotenv
 
 from energy_task_manager.api.routes import plan_router, tasks_router
 from energy_task_manager.context import clear_request_context, set_request_context
+
+load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Energy-Aware AI Task Manager")
 app.include_router(tasks_router)
@@ -28,6 +35,19 @@ async def bind_request_identity(request: Request, call_next):
         return await call_next(request)
     finally:
         clear_request_context()
+
+
+@app.exception_handler(Exception)
+async def catch_unhandled_errors(request: Request, exc: Exception):
+    logger.exception("Unhandled API error on %s %s", request.method, request.url.path)
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "detail": str(exc),
+            "hint": "Check Firestore auth (ADC) and GOOGLE_CLOUD_PROJECT.",
+        },
+    )
 
 
 @app.get("/health")
