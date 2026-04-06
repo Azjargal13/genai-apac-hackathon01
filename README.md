@@ -235,6 +235,20 @@ Example body:
 }
 ```
 
+### Quick smoke test
+
+With API running on `http://localhost:8080`:
+
+```bash
+bash scripts/smoke_test.sh
+```
+
+Override defaults if needed:
+
+```bash
+BASE_URL=http://localhost:8080 USER_ID=beta-user-1 SESSION_ID=s1 bash scripts/smoke_test.sh
+```
+
 ---
 
 ## 💡 Why This Matters
