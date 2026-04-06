@@ -58,8 +58,21 @@ Open the **“Ports”** tab, forward **8080**, and visit the forwarded URL (e.g
 
 ADK runs in the same Linux environment as any other machine. Use the integrated terminal.
 
-- **`adk run`** / **`adk web`**: follow the [ADK Python quickstart](https://google.github.io/adk-docs/get-started/python/) for the **directory layout** ADK expects (you may point it at a folder under `src/` or adjust as your project grows).
-- For **`adk web`**, use port **8000** (already listed for forwarding in the devcontainer) or add another port in **`.devcontainer/devcontainer.json`** if needed.
+This repo now exposes `root_agent` at `src/energy_task_manager/agent.py`, so run:
+
+```bash
+cd src
+adk run energy_task_manager
+```
+
+For the ADK web UI:
+
+```bash
+cd src
+adk web --port 8000
+```
+
+For **`adk web`**, use port **8000** (already listed for forwarding in the devcontainer).
 
 ---
 

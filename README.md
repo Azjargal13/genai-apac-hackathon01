@@ -163,6 +163,8 @@ User → Orchestrator → Insight Agent
 
 **Push → deploy:** connect the repo to **Cloud Build** and use [CLOUD_DEPLOY.md](CLOUD_DEPLOY.md) (trigger on `main`, `cloudbuild.yaml` builds `Dockerfile` and deploys to Run).
 
+**Firestore/Firebase config:** see [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for local auth, IAM, env vars, and DB setup.
+
 **Rough monthly cost (GCP + GitHub Codespaces + Gemini):** [BILLING_ESTIMATE.md](BILLING_ESTIMATE.md) (illustrative; use Google’s pricing calculator and GitHub’s Codespaces billing docs for real quotes).
 
 ---
@@ -176,6 +178,7 @@ hackathon01/
 │       ├── main.py              # FastAPI app entry (Cloud Run target)
 │       ├── api/                 # Routers, Pydantic models
 │       │   └── routes/
+│       │   └── models.py
 │       ├── agents/              # ADK root + sub-agents (orchestrator, insight, execution)
 │       ├── tools/               # ADK tools (Firestore ops, calendar, validation)
 │       ├── integrations/        # Google Calendar API client code
@@ -187,6 +190,8 @@ hackathon01/
 │   └── bootstrap-venv.sh        # Optional: project .venv (Codespaces or Linux)
 ├── CODESPACES.md                # Dev environment: GitHub Codespaces + ADK / FastAPI
 ├── CLOUD_DEPLOY.md              # GitHub → Cloud Build → Cloud Run (one-time setup)
+├── FIREBASE_SETUP.md            # Firestore/Firebase setup and auth config
+├── SCHEMA.md                    # Firestore collections and field contracts
 ├── BILLING_ESTIMATE.md          # Rough monthly cost (Codespaces + GCP + Gemini)
 ├── cloudbuild.yaml              # Build image + deploy Run (used by trigger)
 ├── Dockerfile                   # Container for Cloud Run
