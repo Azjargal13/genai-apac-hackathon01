@@ -60,19 +60,32 @@ def _resolve_user_id(explicit_user_id: str | None) -> str:
 
 def create_task(
     title: str,
-    estimated_minutes: int,
+    estimated_minutes: int | None = None,
     user_id: str | None = None,
-    category: str = "others",
+    category: str | None = None,
     description: str | None = None,
     priority: str = "medium",
 ) -> dict[str, Any]:
-    """Create a task document in Firestore."""
+    """Create a task document in Firestore.
+
+    Agent should pass category and estimated_minutes when available.
+    If estimated_minutes is missing, derive from learned user history.
+    """
     resolved_user_id = _resolve_user_id(user_id)
+    if estimated_minutes is None:
+        stats = _get_repo().get_user_stats(user_id=resolved_user_id)
+        # Learned baseline: use user's historical average completion time.
+        estimated_minutes = (
+            max(1, int(round(stats.avg_task_minutes)))
+            if stats and stats.avg_task_minutes > 0
+            else 60
+        )
+    resolved_category = _parse_category(category)
     task = _get_repo().create_task(
         user_id=resolved_user_id,
         title=title,
         estimated_minutes=estimated_minutes,
-        category=_parse_category(category),
+        category=resolved_category,
         description=description,
         priority=_parse_priority(priority),
     )

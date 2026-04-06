@@ -20,6 +20,21 @@ Instead of just organizing tasks, it provides **personalized decision support**:
 
 ---
 
+## 🎤 Pitch
+
+Most people do not fail to plan. They fail to plan against reality.
+
+This system helps users who tend to overestimate their capacity and underestimate how long tasks actually take.  
+It learns from real completion behavior, estimates realistic workload, and gives concrete, friendly planning insights so users can adjust early and avoid burnout.
+
+Instead of acting like a task database, it acts like a decision-support coach:
+
+- Shows current load in plain language
+- Shows whether today's plan is a good fit for available time and energy
+- Suggests clear choices (reduce scope, spread work, or continue)
+
+---
+
 ## 🚀 Core Idea
 
 > **Behavioral Time Modeling**
@@ -209,16 +224,53 @@ Diagrams and problem statement stay at repo root (`multi-agent-architecture.draw
 All task endpoints use header-based identity: send `X-User-Id` on each request.  
 Optional for tracing/threading: `X-Session-Id`.
 
+For local agent/CLI testing, you can set defaults in `.env`:
+
+```env
+DEFAULT_USER_ID=beta-user-1
+DEFAULT_SESSION_ID=local-session-1
+```
+
+Then requests/tools can resolve identity even when headers are omitted.
+
 ### Add Task
 
 ```
 POST /task
 ```
 
+`category` and `estimated_minutes` are optional for API compatibility.  
+In agent flow, the **agent** is expected to decide both.  
+If category is omitted, backend defaults to `others`.  
+If `estimated_minutes` is omitted, backend derives it from learned user history
+(`user_stats.avg_task_minutes`), with cold-start default `60`.
+
+Category is strictly constrained to schema values only:
+`deep_work`, `errand`, `personal`, `admin`, `meeting`, `learning`, `health`, `others`.  
+The agent must map user intent into one of these and never invent new category labels.
+
+Example:
+
+```bash
+curl -X POST "http://localhost:8080/task" \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: beta-user-1" \
+  -H "X-Session-Id: s1" \
+  -d '{"title":"Write architecture overview"}'
+```
+
 ### Complete Task
 
 ```
 POST /task/{id}/complete
+```
+
+Example:
+
+```bash
+curl -X POST "http://localhost:8080/task/<task_id>/complete" \
+  -H "X-User-Id: beta-user-1" \
+  -H "X-Session-Id: s1"
 ```
 
 ### Plan Day
@@ -233,6 +285,15 @@ Example body:
 {
   "total_available_time_minutes": 360
 }
+```
+
+Example:
+
+```bash
+curl -X POST "http://localhost:8080/plan" \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: beta-user-1" \
+  -d '{"total_available_time_minutes":360}'
 ```
 
 ### Quick smoke test

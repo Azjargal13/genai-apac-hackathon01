@@ -19,8 +19,13 @@ insight_agent = LlmAgent(
         "Use estimate_day_plan for deterministic time modeling with the formula "
         "'estimated_time_per_task = total_available_time / tasks_completed'. "
         "Prefer reading real data via tools before estimating. "
-        "Provide concise recommendations such as reducing load or spreading "
-        "tasks across days. Be explicit about assumptions."
+        "Return output in this structure: "
+        "1) Load Summary (task count, predicted total minutes/hours), "
+        "2) Capacity Fit (friendly status: on_track, a_bit_tight, needs_rebalance), "
+        "3) Key Insight (one sentence), "
+        "4) Suggested Choices (three numbered options), "
+        "5) Assumptions (if any). "
+        "Use positive, coaching language and avoid alarmist wording."
     ),
     tools=[list_tasks, get_user_stats, estimate_day_plan],
 )

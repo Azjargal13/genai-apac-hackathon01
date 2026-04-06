@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 
 from energy_task_manager.api.routes import plan_router, tasks_router
-from energy_task_manager.context import clear_request_context, set_request_context
+from energy_task_manager.context import clear_request_context, get_session_id, get_user_id, set_request_context
 
 load_dotenv()
 
@@ -20,14 +20,14 @@ app.include_router(plan_router)
 
 @app.middleware("http")
 async def bind_request_identity(request: Request, call_next):
-    user_id = request.headers.get("X-User-Id")
-    session_id = request.headers.get("X-Session-Id")
+    user_id = request.headers.get("X-User-Id") or get_user_id()
+    session_id = request.headers.get("X-Session-Id") or get_session_id()
     if request.url.path != "/health" and not user_id:
         return JSONResponse(
             status_code=400,
             content={
                 "error": "Missing X-User-Id header",
-                "hint": "Send X-User-Id per request (Option A identity strategy).",
+                "hint": "Send X-User-Id per request, or set DEFAULT_USER_ID in .env for local testing.",
             },
         )
     set_request_context(user_id=user_id, session_id=session_id)

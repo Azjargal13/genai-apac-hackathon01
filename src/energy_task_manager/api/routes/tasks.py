@@ -12,8 +12,8 @@ router = APIRouter(prefix="/task", tags=["task"])
 
 class CreateTaskRequest(BaseModel):
     title: str = Field(min_length=1, max_length=200)
-    estimated_minutes: int = Field(ge=1)
-    category: str = "others"
+    estimated_minutes: int | None = Field(default=None, ge=1)
+    category: str | None = None
     description: str | None = None
     priority: str = "medium"
 

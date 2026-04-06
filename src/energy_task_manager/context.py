@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from contextvars import ContextVar
 
 _user_id_ctx: ContextVar[str | None] = ContextVar("user_id", default=None)
@@ -19,9 +20,9 @@ def clear_request_context() -> None:
 
 
 def get_user_id() -> str | None:
-    return _user_id_ctx.get()
+    return _user_id_ctx.get() or os.getenv("DEFAULT_USER_ID")
 
 
 def get_session_id() -> str | None:
-    return _session_id_ctx.get()
+    return _session_id_ctx.get() or os.getenv("DEFAULT_SESSION_ID")
 
