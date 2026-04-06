@@ -4,6 +4,8 @@ import os
 
 from google.adk.agents import LlmAgent
 
+from energy_task_manager.tools import complete_task, create_task, get_task, list_tasks
+
 MODEL = os.getenv("ADK_MODEL", "gemini-3-flash-preview")
 
 execution_agent = LlmAgent(
@@ -16,7 +18,8 @@ execution_agent = LlmAgent(
         "calendar scheduling intents. "
         "When creating tasks, infer category from user text and use 'others' as "
         "the fallback if no category clearly applies. "
-        "Until real tools are connected, clearly describe the intended action, "
-        "required inputs, and expected result as a dry run."
+        "Use tools for CRUD operations whenever possible. "
+        "If required data is missing (for example user_id), ask a concise question."
     ),
+    tools=[create_task, complete_task, get_task, list_tasks],
 )

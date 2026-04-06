@@ -206,6 +206,9 @@ Diagrams and problem statement stay at repo root (`multi-agent-architecture.draw
 
 ## ⚙️ API Endpoints
 
+All task endpoints use header-based identity: send `X-User-Id` on each request.  
+Optional for tracing/threading: `X-Session-Id`.
+
 ### Add Task
 
 ```
@@ -222,6 +225,14 @@ POST /task/{id}/complete
 
 ```
 POST /plan
+```
+
+Example body:
+
+```json
+{
+  "total_available_time_minutes": 360
+}
 ```
 
 ---
