@@ -1,348 +1,91 @@
 # ⚡ Energy-Aware AI Task Manager
 
-> **AI that doesn’t just manage tasks — it protects your energy.**
+> AI that learns your work pace, detects overload early, and helps plan sustainably.
 
----
+## What This Project Does
 
-## 🧠 Overview
+This project is a multi-agent assistant for daily task planning and execution.
 
-Most task managers assume users have unlimited time and energy.
+- Learns behavior-based task duration trends
+- Flags overload risk before burnout
+- Supports in-app task planning and Google Tasks/Calendar actions
 
-This system takes a different approach:
+## Why It Matters
 
-> It learns how long tasks actually take for you and prevents overplanning.
+Most planning tools optimize for task count, not human energy.  
+This assistant is **energy-aware**: it estimates realistic capacity and helps users rebalance work before they overcommit.
 
-Instead of just organizing tasks, it provides **personalized decision support**:
+## Core Capabilities
 
-* Detects overload
-* Estimates realistic workload
-* Suggests better plans
+- **Multi-agent orchestration**: root agent routes to insight/execution agents
+- **Behavioral time modeling**: estimates workload from completion history
+- **Overload detection**: identifies when planned effort exceeds available time
+- **Task operations**: create/list/complete tasks
+- **Google integrations**: create/update/list Google Tasks and Calendar events
 
----
+## High-Level Architecture
 
-## 🎤 Pitch
+- **Root Agent**: intent routing and concise responses
+- **Insight Agent**: workload analysis, recap, and planning suggestions
+- **Execution Agent**: task/calendar actions with safe tool handling
+- **Data Layer**: Firestore for app tasks and user stats
 
-**Pitch pack (slides / judge prep):** see the [`pitch/`](pitch/) folder—problem, USP, tech, Google stack, opportunities, and a suggested demo script.
+### Use-Case View
 
-Most people do not fail to plan. They fail to plan against reality.
+![User flow diagram](pitch/diagrams/user-flow-diagram.png)
 
-This system helps users who tend to overestimate their capacity and underestimate how long tasks actually take.  
-It learns from real completion behavior, estimates realistic workload, and gives concrete, friendly planning insights so users can adjust early and avoid burnout.
+### Process Flow View
 
-Instead of acting like a task database, it acts like a decision-support coach:
+![Process diagram](pitch/diagrams/process-diagram.png)
 
-- Shows current load in plain language
-- Shows whether today's plan is a good fit for available time and energy
-- Suggests clear choices (reduce scope, spread work, or continue)
+## Public API (Quick Test)
 
----
+Base URL example:
 
-## 🚀 Core Idea
+`https://energy-aware-ai-assistant-5736820628.asia-northeast3.run.app`
 
-> **Behavioral Time Modeling**
-
-The system observes:
-
-* how many tasks you complete
-* how long you take
-
-Then it estimates:
-
-```
-estimated_time_per_task = total_available_time / tasks_completed
-```
-
-Using this, it can:
-
-* predict workload
-* detect burnout risk
-* suggest smarter schedules
-
----
-
-## 🏗️ Architecture
-
-### 🧠 Primary Agent — Orchestrator
-
-* Understands user intent
-* Routes requests to sub-agents
-* Handles clarification & suggestions
-
----
-
-### 📊 Insight Agent (Core Intelligence)
-
-* Retrieves task data
-* Calculates:
-
-  * average task duration
-  * total workload
-* Detects:
-
-  * overload
-  * imbalance
-* Generates personalized insights
-
----
-
-### ⚡ Execution Agent
-
-* Creates / updates tasks
-* Marks tasks complete
-* Uses **Google Calendar API** for meetings / time blocks (via tools)
-* Validates actions before execution
-
----
-
-### 🗄️ Data Layer
-
-**Firestore** for:
-
-* tasks
-* completion timestamps
-* user statistics (avg task duration)
-
----
-
-## 🔄 System Flow
-
-### 1. Add Task
-
-```
-User → Orchestrator → Execution Agent → DB
-```
-
----
-
-### 2. Complete Task
-
-```
-User → Execution Agent → DB
-→ Insight Agent updates behavior model
-```
-
----
-
-### 3. Plan Day (Key Feature)
-
-```
-User → Orchestrator → Insight Agent
-→ workload estimation → response
-```
-
----
-
-## ✨ Example Interaction
-
-**User:**
-
-> Plan my day
-
-**System:**
-
-> You have 5 tasks.
-> You usually spend ~2 hours per task.
-> That’s ~10 hours of work.
->
-> You typically perform best for ~6 hours.
-> This may lead to overload.
->
-> Do you want to:
->
-> 1. Reduce workload
-> 2. Spread tasks across days
-> 3. Keep as is
-
----
-
-## 🎯 Key Features
-
-* ✅ Task creation & completion
-* ✅ Workload estimation
-* ✅ Overload detection
-* ✅ Personalized time modeling
-* ✅ Decision support suggestions
-
----
-
-## 🧩 Tech Stack
-
-| Layer | Choice |
-|--------|--------|
-| Agents & reasoning | **Google ADK** with **Gemini** (Vertex AI or API per your ADK config) |
-| API | **FastAPI** (`uvicorn` on Cloud Run) |
-| Database | **Cloud Firestore** |
-| External integration | **Google Calendar API** + **Google Tasks API** (see [GOOGLE_TASKS_CALENDAR.md](GOOGLE_TASKS_CALENDAR.md)) |
-| Deployment | **Google Cloud Run** (image built by **Cloud Build** on **git push**) |
-| Remote dev | **GitHub Codespaces** + `.devcontainer` — see [CODESPACES.md](CODESPACES.md) |
-| Local secrets | **`.env`** (not committed); copy from `.env.example` |
-| Production secrets | **Secret Manager** + Cloud Run env / volume references |
-
-**Push → deploy:** connect the repo to **Cloud Build** and use [CLOUD_DEPLOY.md](CLOUD_DEPLOY.md) (trigger on `main`, `cloudbuild.yaml` builds `Dockerfile` and deploys to Run).
-
-**Firestore/Firebase config:** see [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for local auth, IAM, env vars, and DB setup.
-
-**Rough monthly cost (GCP + GitHub Codespaces + Gemini):** [BILLING_ESTIMATE.md](BILLING_ESTIMATE.md) (illustrative; use Google’s pricing calculator and GitHub’s Codespaces billing docs for real quotes).
-
----
-
-## 📁 Repository layout
-
-```text
-hackathon01/
-├── src/
-│   └── energy_task_manager/     # Python package (install with pip -e . or PYTHONPATH)
-│       ├── main.py              # FastAPI app entry (Cloud Run target)
-│       ├── api/                 # Routers, Pydantic models
-│       │   └── routes/
-│       │   └── models.py
-│       ├── agents/              # ADK root + sub-agents (orchestrator, insight, execution)
-│       ├── tools/               # ADK tools (Firestore task + planning tools)
-│       ├── integrations/        # OAuth for Google Tasks/Calendar (see GOOGLE_TASKS_CALENDAR.md)
-│       └── persistence/         # Firestore repositories & schemas
-├── tests/
-├── .devcontainer/
-│   └── devcontainer.json        # GitHub Codespaces: Python + pip install + PYTHONPATH
-├── scripts/
-│   ├── google_oauth_login.py    # OAuth token (paste flow); test_google_tokens.py — verify Tasks + Calendar
-│   └── bootstrap-venv.sh      # Optional: project .venv (Codespaces or Linux)
-├── COMMANDS.md                  # Copy-paste: ADK, FastAPI, OAuth, curl, git
-├── CODESPACES.md                # Dev environment: GitHub Codespaces + ADK / FastAPI
-├── CLOUD_DEPLOY.md              # GitHub → Cloud Build → Cloud Run (one-time setup)
-├── FIREBASE_SETUP.md            # Firestore/Firebase setup and auth config
-├── GOOGLE_TASKS_CALENDAR.md     # Calendar + Tasks API integration notes
-├── SCHEMA.md                    # Firestore collections and field contracts
-├── BILLING_ESTIMATE.md          # Rough monthly cost (Codespaces + GCP + Gemini)
-├── cloudbuild.yaml              # Build image + deploy Run (used by trigger)
-├── Dockerfile                   # Container for Cloud Run
-├── .env.example                 # Variable names only (no real secrets)
-├── requirements.txt             # Python deps
-└── pyproject.toml               # (optional)
-```
-
-Diagrams and problem statement stay at repo root (`multi-agent-architecture.drawio`, `PROBLEM_STATEMENT.md`).
-
----
-
-## ⚙️ API Endpoints
-
-All task endpoints use header-based identity: send `X-User-Id` on each request.  
-Optional for tracing/threading: `X-Session-Id`.
-
-For local agent/CLI testing, you can set defaults in `.env`:
-
-```env
-DEFAULT_USER_ID=beta-user-1
-DEFAULT_SESSION_ID=local-session-1
-```
-
-Then requests/tools can resolve identity even when headers are omitted.
-
-### Add Task
-
-```
-POST /task
-```
-
-`category` and `estimated_minutes` are optional for API compatibility.  
-In agent flow, the **agent** is expected to decide both.  
-If category is omitted, backend defaults to `others`.  
-If `estimated_minutes` is omitted, backend derives it from learned user history
-(`user_stats.avg_task_minutes`), with cold-start default `60`.
-
-Category is strictly constrained to schema values only:
-`deep_work`, `errand`, `personal`, `admin`, `meeting`, `learning`, `health`, `others`.  
-The agent must map user intent into one of these and never invent new category labels.
-
-Example:
+### 1) Health
 
 ```bash
-curl -X POST "http://localhost:8080/task" \
-  -H "Content-Type: application/json" \
+curl -sS "$BASE_URL/health"
+```
+
+### 2) List tasks
+
+```bash
+curl -sS "$BASE_URL/task?limit=5" \
   -H "X-User-Id: beta-user-1" \
-  -H "X-Session-Id: s1" \
-  -d '{"title":"Write architecture overview"}'
+  -H "X-Session-Id: local-session-1"
 ```
 
-### Complete Task
-
-```
-POST /task/{id}/complete
-```
-
-Example:
+### 3) Plan day
 
 ```bash
-curl -X POST "http://localhost:8080/task/<task_id>/complete" \
-  -H "X-User-Id: beta-user-1" \
-  -H "X-Session-Id: s1"
-```
-
-### Plan Day
-
-```
-POST /plan
-```
-
-Example body:
-
-```json
-{
-  "total_available_time_minutes": 360
-}
-```
-
-Example:
-
-```bash
-curl -X POST "http://localhost:8080/plan" \
+curl -sS -X POST "$BASE_URL/plan" \
   -H "Content-Type: application/json" \
   -H "X-User-Id: beta-user-1" \
   -d '{"total_available_time_minutes":360}'
 ```
 
-### Quick smoke test
-
-With API running on `http://localhost:8080`:
+### 4) Create task
 
 ```bash
-bash scripts/smoke_test.sh
+curl -sS -X POST "$BASE_URL/task" \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: beta-user-1" \
+  -H "X-Session-Id: local-session-1" \
+  -d '{"title":"Cloud Run smoke task","category":"admin","priority":"medium","estimated_minutes":20}'
 ```
 
-Override defaults if needed:
+## Pitch Materials
 
-```bash
-BASE_URL=http://localhost:8080 USER_ID=beta-user-1 SESSION_ID=s1 bash scripts/smoke_test.sh
-```
+See [`pitch/`](pitch/) for:
 
----
+- problem/solution summary
+- USP and differentiators
+- tech stack
+- use-case/process diagrams
 
-## 💡 Why This Matters
+## Internal / Developer Docs
 
-> People don’t burn out because they don’t plan.
-> They burn out because they overcommit.
-
-This system helps users:
-
-* understand their real capacity
-* avoid unrealistic schedules
-* make better decisions daily
-
----
-
-## 🏁 Future Improvements
-
-* Energy-aware scheduling (morning vs evening)
-* Task categorization (deep vs quick work)
-* Deeper Calendar workflows (recurring events, availability sync)
-* Adaptive learning over time
-* Additional MCP-style or third-party tools beyond Calendar
-
----
-
-## 🧠 Final Thought
-
-> This is not just a task manager.
-> It’s a system that understands human limits — and plans accordingly.
-
----
+All internal setup and operational docs are indexed in [`doc/`](doc/README.md).
