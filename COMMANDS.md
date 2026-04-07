@@ -118,6 +118,16 @@ python scripts/google_oauth_login.py
 
 **Local machine:** set `OAUTH_NO_BROWSER=1` and use the printed URL only if the browser does not open.
 
+**`ERR_CONNECTION_REFUSED` on localhost after Google**
+
+- The terminal running `python scripts/google_oauth_login.py` must **still be running** (waiting). **Do not Ctrl+C** until you see `Saved credentials`. A venv is optional; what matters is that **this Python process** is listening.
+- **Codespaces:** in **Ports**, the redirect port (default **55555**) must show as **forwarded** to your laptop before you finish the Google consent screen.
+- If it keeps failing: run the script **on your local PC** once, then copy `secrets/token.json` into the remote environment.
+
+**`MismatchingStateError` / CSRF state not equal**
+
+- Google’s redirect can include `iss=https://accounts.google.com`. Older `google-auth-oauthlib` corrupts the URL with a naive `http`→`https` replace and breaks `state`. This repo’s `google_oauth_login.py` uses a **fixed** local server path; pull the latest script and retry. Also use **one** fresh run: don’t reuse an old “Please visit this URL” from a previous attempt.
+
 **Check token visible to the app:**
 
 ```bash

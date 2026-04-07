@@ -57,6 +57,67 @@ def _open_browser() -> bool:
     return True
 
 
+def _run_oauth_local_server(
+    flow,
+    *,
+    host: str,
+    bind_addr: str | None,
+    port: int,
+    open_browser: bool,
+    access_type: str,
+    prompt: str,
+):
+    """Same as InstalledAppFlow.run_local_server but fixes Google's ``iss=https://...`` callback.
+
+    Upstream ``run_local_server`` does ``uri.replace("http", "https")`` on the full redirect URL,
+    which corrupts query params and triggers ``MismatchingStateError``. We only rewrite the scheme
+    once (``http://`` at the start of the callback URL).
+    """
+    import webbrowser
+    import wsgiref.simple_server
+
+    from google_auth_oauthlib.flow import (  # noqa: PLC2701
+        WSGITimeoutError,
+        _RedirectWSGIApp,
+        _WSGIRequestHandler,
+    )
+
+    success_message = (
+        "The authentication flow has completed. You may close this window."
+    )
+    wsgi_app = _RedirectWSGIApp(success_message)
+    wsgiref.simple_server.WSGIServer.allow_reuse_address = False
+    listen_host = bind_addr if bind_addr else host
+    local_server = wsgiref.simple_server.make_server(
+        listen_host, port, wsgi_app, handler_class=_WSGIRequestHandler
+    )
+    try:
+        actual_port = local_server.server_port
+        flow.redirect_uri = f"http://{host}:{actual_port}/"
+        auth_url, _ = flow.authorization_url(
+            access_type=access_type,
+            prompt=prompt,
+        )
+        if open_browser:
+            webbrowser.open(auth_url, new=1, autoraise=True)
+        print(f"Please visit this URL to authorize this application: {auth_url}")
+        local_server.timeout = None
+        local_server.handle_request()
+        last_uri = getattr(wsgi_app, "last_request_uri", None)
+        if not last_uri:
+            raise WSGITimeoutError(
+                "Timed out waiting for response from authorization server"
+            )
+        if last_uri.startswith("http://"):
+            authorization_response = "https://" + last_uri[len("http://") :]
+        else:
+            authorization_response = last_uri
+        flow.fetch_token(authorization_response=authorization_response)
+    finally:
+        local_server.server_close()
+    return flow.credentials
+
+
 def main() -> int:
     client_secrets = os.getenv("GOOGLE_OAUTH_CLIENT_SECRETS_PATH")
     if not client_secrets or not Path(client_secrets).is_file():
@@ -101,17 +162,25 @@ def main() -> int:
             file=sys.stderr,
         )
 
-    # Bind on all interfaces in Codespaces so forwarded ports reach the redirect server.
-    run_kw: dict = {
-        "port": redirect_port,
-        "open_browser": _open_browser(),
-        "access_type": "offline",
-        "prompt": "consent",
-    }
-    if codespace:
-        run_kw["bind_addr"] = "0.0.0.0"
+    bind_addr = "0.0.0.0" if codespace else None
 
-    creds = flow.run_local_server(**run_kw)
+    print(
+        "\n>>> Leave this command RUNNING until you see 'Saved credentials' below.\n"
+        ">>> Google's redirect goes to a tiny server inside this Python process — if you\n"
+        "    Ctrl+C or close the terminal first, you get ERR_CONNECTION_REFUSED on localhost.\n"
+        ">>> (Using a venv or not does not matter; the process must stay alive.)\n",
+        file=sys.stderr,
+    )
+
+    creds = _run_oauth_local_server(
+        flow,
+        host="localhost",
+        bind_addr=bind_addr,
+        port=redirect_port,
+        open_browser=_open_browser(),
+        access_type="offline",
+        prompt="consent",
+    )
 
     parent = Path(token_path).resolve().parent
     if str(parent) not in ("", "."):
