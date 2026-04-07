@@ -4,6 +4,8 @@ Use **GitHub Codespaces** to edit, install **Python + Google ADK + FastAPI** dep
 
 Deploying to **Google Cloud Run** after you push is covered in [CLOUD_DEPLOY.md](CLOUD_DEPLOY.md).
 
+**All copy-paste commands in one place:** [COMMANDS.md](COMMANDS.md).
+
 ---
 
 ## First time: open a Codespace

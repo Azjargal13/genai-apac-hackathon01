@@ -204,6 +204,7 @@ hackathon01/
 ├── scripts/
 │   ├── google_oauth_login.py    # One-time OAuth → secrets/token.json (see GOOGLE_TASKS_CALENDAR.md)
 │   └── bootstrap-venv.sh      # Optional: project .venv (Codespaces or Linux)
+├── COMMANDS.md                  # Copy-paste: ADK, FastAPI, OAuth, curl, git
 ├── CODESPACES.md                # Dev environment: GitHub Codespaces + ADK / FastAPI
 ├── CLOUD_DEPLOY.md              # GitHub → Cloud Build → Cloud Run (one-time setup)
 ├── FIREBASE_SETUP.md            # Firestore/Firebase setup and auth config
