@@ -9,6 +9,7 @@ Use this folder when preparing demos, slides, or judge Q&A. Each file is short o
 | [tech-stack.md](tech-stack.md) | Engineering depth, how it hangs together |
 | [google-services.md](google-services.md) | Google Cloud / APIs / ADK story |
 | [opportunities-and-next-steps.md](opportunities-and-next-steps.md) | Roadmap, business, extensions |
+| [diagrams/](diagrams/) | **Use-case** + **process flow** (Mermaid; export to PNG for slides) |
 
 ---
 
