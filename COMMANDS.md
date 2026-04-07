@@ -105,6 +105,18 @@ export PYTHONPATH="${PWD}/src"
 python scripts/google_oauth_login.py
 ```
 
+**Why the browser goes to `accounts.google.com` first, then `localhost`:**  
+Sign-in always happens on Google. The `redirect_uri=http://localhost:PORT` in that long URL is where Google sends you **after** you click Allow so your app can read the `code`. **Desktop OAuth clients must use loopback** (`localhost` / `127.0.0.1`); you cannot “remove localhost” without switching to a **Web** OAuth client and a public HTTPS redirect URL.
+
+**Codespaces / `MismatchingStateError`:** use paste mode (no redirect server):
+
+```bash
+export PYTHONPATH="${PWD}/src"
+python scripts/google_oauth_login.py --paste
+```
+
+Or set `OAUTH_PASTE_REDIRECT=1`. After consent, copy the **full** URL from the address bar (even if the page errors) and paste into the terminal.
+
 **If Google sign-in never appears**
 
 - The script always prints `Please visit this URL to authorize...` — open **that** `https://accounts.google.com/...` link in your browser (auto-open often fails on **Codespaces**, **SSH**, or **headless**).
@@ -126,7 +138,7 @@ python scripts/google_oauth_login.py
 
 **`MismatchingStateError` / CSRF state not equal**
 
-- Google’s redirect can include `iss=https://accounts.google.com`. Older `google-auth-oauthlib` corrupts the URL with a naive `http`→`https` replace and breaks `state`. This repo’s `google_oauth_login.py` uses a **fixed** local server path; pull the latest script and retry. Also use **one** fresh run: don’t reuse an old “Please visit this URL” from a previous attempt.
+- The script skips spurious first hits (port probe / favicon) and only accepts a callback that contains `?code=`. It also avoids corrupting `iss=https://...` in the query string. Use **one** fresh run (don’t reuse an old Google URL). If it still fails, use **`--paste`** (above).
 
 **Check token visible to the app:**
 
