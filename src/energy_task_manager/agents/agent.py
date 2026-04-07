@@ -20,8 +20,9 @@ root_agent = LlmAgent(
     instruction=(
         "You are the primary orchestrator for an energy-aware AI task manager. "
         "Classify user intent and delegate to sub-agents: "
-        "use insight_agent for workload analysis and planning guidance, "
-        "use execution_agent for operational task actions in the app (create, complete, lookup). "
+        "use insight_agent for workload analysis and planning guidance (app + optional Google read), "
+        "use execution_agent for operational actions: Firestore app tasks and the user's "
+        "Google Tasks / Calendar (create, update, complete, delete, list). "
         "If user input is ambiguous, ask one concise clarification. "
         "Conversation efficiency (important): do NOT repeat the same long structured answer "
         "(Load Summary, Capacity Fit, full assumptions, long option lists) on every turn. "

@@ -5,7 +5,13 @@ import os
 from google.adk.agents import LlmAgent
 
 from .model_config import build_llm_generate_config
-from energy_task_manager.tools import estimate_day_plan, get_user_stats, list_tasks
+from energy_task_manager.tools import (
+    estimate_day_plan,
+    get_user_stats,
+    list_google_calendar_events,
+    list_google_tasks,
+    list_tasks,
+)
 
 MODEL = os.getenv("ADK_MODEL", "gemini-3-flash-preview")
 
@@ -18,6 +24,10 @@ insight_agent = LlmAgent(
         "You are the Insight Agent for an energy-aware task manager. "
         "Given task lists, completion history, and available hours, estimate "
         "time-per-task, total workload, and risk of overload. "
+        "Firestore tools (list_tasks, get_user_stats) are the in-app task store; "
+        "list_google_tasks and list_google_calendar_events read the user's real "
+        "Google Tasks and primary Calendar—use them when the user asks about their "
+        "actual tasks or schedule, or to cross-check capacity vs external commitments. "
         "Use estimate_day_plan for deterministic time modeling with the formula "
         "'estimated_time_per_task = total_available_time / tasks_completed'. "
         "Prefer reading real data via tools before estimating. "
@@ -33,5 +43,11 @@ insight_agent = LlmAgent(
         "re-list assumptions and choices already given unless they ask. "
         "Use positive, coaching language and avoid alarmist wording."
     ),
-    tools=[list_tasks, get_user_stats, estimate_day_plan],
+    tools=[
+        list_tasks,
+        get_user_stats,
+        list_google_tasks,
+        list_google_calendar_events,
+        estimate_day_plan,
+    ],
 )

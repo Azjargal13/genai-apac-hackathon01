@@ -1,6 +1,19 @@
-"""ADK-callable tools backed by Firestore repository."""
+"""ADK-callable tools: Firestore app store + Google Tasks/Calendar (user OAuth)."""
 
 from __future__ import annotations
+
+from energy_task_manager.tools.google_tools import (
+    complete_google_task,
+    create_google_calendar_event,
+    create_google_task,
+    delete_google_calendar_event,
+    delete_google_task,
+    list_google_calendar_events,
+    list_google_task_lists,
+    list_google_tasks,
+    update_google_calendar_event,
+    update_google_task,
+)
 
 from datetime import datetime
 from typing import Any
@@ -202,3 +215,22 @@ def estimate_day_plan(
         "recommendations": recommendations,
     }
 
+
+__all__ = [
+    "complete_google_task",
+    "complete_task",
+    "create_google_calendar_event",
+    "create_google_task",
+    "create_task",
+    "delete_google_calendar_event",
+    "delete_google_task",
+    "estimate_day_plan",
+    "get_task",
+    "get_user_stats",
+    "list_google_calendar_events",
+    "list_google_task_lists",
+    "list_google_tasks",
+    "list_tasks",
+    "update_google_calendar_event",
+    "update_google_task",
+]

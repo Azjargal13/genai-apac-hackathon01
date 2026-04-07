@@ -7,7 +7,7 @@ This doc covers **Google Tasks API** and **Google Calendar API** for agents: cre
 | Task / reminder / to-do the user should complete | **Google Tasks API** | Google Tasks app, Calendar task views |
 | Time-blocked meeting or focus block on the grid | **Google Calendar API** (events) | Google Calendar |
 
-**Target:** execution agent writes via Tasks + Calendar; insight agent reads them alongside Firestore. **Today:** agents use Firestore task tools only until steps 2–5 below are implemented.
+**Implemented:** `integrations/tasks.py` and `integrations/calendar.py` call the APIs; ADK tools live in `tools/google_tools.py` (prefixed `*_google_*` to avoid clashing with Firestore `list_tasks` / `create_task`). **execution_agent** has full Google Tasks + Calendar CRUD plus Firestore tools; **insight_agent** reads Google Tasks + Calendar plus Firestore stats/plan tools.
 
 ---
 
@@ -39,20 +39,20 @@ In Cloud Console → **APIs & Services** → **OAuth consent screen**: keep **Pu
 
 ---
 
-## Execution agent — write paths (API design)
+## Execution agent — tools
 
-- **Tasks:** `tasks.tasks().insert()`, `patch()`, `delete()` on a task list (`tasklist` id; often `@default`).
-- **Calendar:** `events.insert()`, `patch()`, `delete()` for timed blocks.
+- **Firestore:** `create_task`, `complete_task`, `get_task`, `list_tasks`, `get_user_stats`.  
+- **Google Tasks:** `list_google_task_lists`, `list_google_tasks`, `create_google_task`, `update_google_task`, `complete_google_task`, `delete_google_task`.  
+- **Google Calendar:** `list_google_calendar_events`, `create_google_calendar_event`, `update_google_calendar_event`, `delete_google_calendar_event`.
 
-Once wired, Tasks/Calendar are the user-visible source of truth; Firestore can stay for analytics only if you mirror.
+Underlying API calls: Tasks `insert` / `patch` / `delete`; Calendar `events.insert` / `patch` / `delete` on `primary`.
 
 ---
 
-## Insight agent — read paths (API design)
+## Insight agent — tools
 
-- **Tasks:** list open tasks, due dates, titles.  
-- **Calendar:** list today’s events.  
-- **Current tools:** Firestore `list_tasks`, `estimate_day_plan`, `get_user_stats` until Google read tools exist.
+- **Firestore:** `list_tasks`, `get_user_stats`, `estimate_day_plan`.  
+- **Google (read):** `list_google_tasks`, `list_google_calendar_events`.
 
 ---
 
@@ -65,15 +65,16 @@ GOOGLE_OAUTH_TOKEN_PATH=secrets/token.json
 # GOOGLE_OAUTH_TOKEN_JSON=
 
 GOOGLE_TASKS_DEFAULT_LIST_ID=@default
+GOOGLE_CALENDAR_TIMEZONE=Asia/Ulaanbaatar
 ```
 
 ---
 
-## Next implementation steps in this repo
+## Checklist (repo)
 
-1. **OAuth:** `integrations/google_oauth.py` + `scripts/google_oauth_login.py` (paste flow).  
-2. **Read clients:** `integrations/tasks.py`, `integrations/calendar.py` — verify with `scripts/test_google_tokens.py`.  
-3. Register ADK tools (create/update/list tasks, calendar events) and attach to **execution_agent** / **insight_agent**.
+1. **OAuth:** `integrations/google_oauth.py` + `scripts/google_oauth_login.py`.  
+2. **Integrations:** `integrations/tasks.py`, `integrations/calendar.py` — smoke-test with `scripts/test_google_tokens.py`.  
+3. **ADK:** `tools/google_tools.py` + exports in `tools/__init__.py`; agents in `agents/execution.py` and `agents/insight.py`.
 
 ---
 
