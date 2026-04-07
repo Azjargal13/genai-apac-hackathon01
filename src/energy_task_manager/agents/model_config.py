@@ -28,11 +28,11 @@ def _parse_float(name: str, default: float) -> float:
 
 
 def build_llm_generate_config() -> types.GenerateContentConfig:
-    """Lower ``ADK_MAX_OUTPUT_TOKENS`` to keep replies short and reduce quota use.
+    """Keep outputs concise to reduce latency/rate-limit pressure.
 
     ``ADK_TEMPERATURE`` slightly lower = steadier routing and less rambling.
     """
     return types.GenerateContentConfig(
-        max_output_tokens=_parse_int("ADK_MAX_OUTPUT_TOKENS", 1024),
+        max_output_tokens=_parse_int("ADK_MAX_OUTPUT_TOKENS", 640),
         temperature=_parse_float("ADK_TEMPERATURE", 0.45),
     )

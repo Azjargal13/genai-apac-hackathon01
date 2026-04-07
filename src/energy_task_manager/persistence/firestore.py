@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Any
 
 from google.cloud import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 
 from energy_task_manager.api.models import (
     TaskCategory,
@@ -116,12 +117,12 @@ class FirestoreRepository:
     ) -> list[TaskRecord]:
         query = (
             self.client.collection(self.TASKS_COLLECTION)
-            .where("user_id", "==", user_id)
+            .where(filter=FieldFilter("user_id", "==", user_id))
             .order_by("created_at", direction=firestore.Query.DESCENDING)
             .limit(limit)
         )
         if status is not None:
-            query = query.where("status", "==", status.value)
+            query = query.where(filter=FieldFilter("status", "==", status.value))
         docs = query.stream()
         return [TaskRecord.model_validate(doc.to_dict()) for doc in docs]
 

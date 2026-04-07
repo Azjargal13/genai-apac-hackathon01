@@ -31,6 +31,8 @@ insight_agent = LlmAgent(
         "Use estimate_day_plan for deterministic time modeling with the formula "
         "'estimated_time_per_task = total_available_time / tasks_completed'. "
         "Prefer reading real data via tools before estimating. "
+        "Tool budget: for follow-up turns, avoid re-running all reads; reuse prior context when reasonable. "
+        "Default max tool calls per turn is 2 unless the user explicitly asks for a fresh full analysis. "
         "Output format depends on the request: "
         "Use the full five-part structure only when the user wants a real analysis or plan "
         "(new topic, 'how does my day look', 'estimate', 'plan', or explicit recap). "
