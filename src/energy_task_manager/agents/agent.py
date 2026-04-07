@@ -22,6 +22,8 @@ root_agent = LlmAgent(
         "Use insight_agent for planning, workload, and overload questions. "
         "Use execution_agent for task/calendar operations. "
         "For casual follow-ups (acknowledgments, minor edits, small talk), answer directly and do not delegate. "
+        "If user asks to recap/summarize recent discussion, prefer direct recap from conversation context "
+        "without delegation or tools. "
         "Delegate to only one sub-agent per turn unless user explicitly asks for combined analysis + action. "
         "Default response style: max 2 sentences or up to 3 short bullets. "
         "Ask one concise clarification only when required data is missing. "

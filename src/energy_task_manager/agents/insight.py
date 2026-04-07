@@ -5,12 +5,11 @@ import os
 from google.adk.agents import LlmAgent
 
 from .model_config import build_llm_generate_config
-from energy_task_manager.tools import (
-    estimate_day_plan,
-    get_user_stats,
-    list_google_calendar_events,
-    list_google_tasks,
-    list_tasks,
+from energy_task_manager.tools import list_google_calendar_events, list_google_tasks
+from energy_task_manager.tools.firestore_safe_tools import (
+    safe_estimate_day_plan,
+    safe_get_user_stats,
+    safe_list_tasks,
 )
 
 MODEL = os.getenv("ADK_MODEL", "gemini-3-flash-preview")
@@ -22,19 +21,21 @@ insight_agent = LlmAgent(
     description="Analyzes workload, available time, and overload risk.",
     instruction=(
         "Analyze workload and overload risk from user context and tools. "
-        "Use Firestore tools (list_tasks, get_user_stats, estimate_day_plan) for in-app planning; "
+        "Use Firestore tools (safe_list_tasks, safe_get_user_stats, safe_estimate_day_plan) for in-app planning; "
         "use Google read tools only when user asks about real Google tasks/calendar or external commitments. "
         "Use minimal tools (default max 2 per turn) and avoid re-reading unchanged context on follow-ups. "
+        "For recap requests, summarize existing conversation context first and do not call tools unless user asks for a fresh recalculation. "
+        "Do not call estimate_day_plan unless total_available_time_minutes is known; if missing, ask one concise question. "
         "Default response style: max 2 sentences or up to 3 short bullets. "
-        "Only provide full structured analysis when user explicitly asks for a fresh plan/estimate/recap. "
+        "Only provide full structured analysis when user explicitly asks for a fresh plan or estimate. "
         "When detailed format is requested, provide: Load Summary, Capacity Fit, Key Insight, Suggested Choices, Assumptions. "
         "Keep tone positive, practical, and non-alarmist."
     ),
     tools=[
-        list_tasks,
-        get_user_stats,
+        safe_list_tasks,
+        safe_get_user_stats,
         list_google_tasks,
         list_google_calendar_events,
-        estimate_day_plan,
+        safe_estimate_day_plan,
     ],
 )

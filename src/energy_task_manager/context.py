@@ -30,7 +30,8 @@ def clear_request_context() -> None:
 
 
 def get_user_id() -> str | None:
-    return _user_id_ctx.get() or os.getenv("DEFAULT_USER_ID")
+    # Demo-safe fallback to avoid missing identity errors in ADK/local runs.
+    return _user_id_ctx.get() or os.getenv("DEFAULT_USER_ID") or "beta_user_1"
 
 
 def get_session_id() -> str | None:
