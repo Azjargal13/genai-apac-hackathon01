@@ -46,7 +46,9 @@ execution_agent = LlmAgent(
         "If successful, confirm briefly and include returned id/title. "
         "For Firestore task creation, choose category from: deep_work, errand, personal, admin, meeting, learning, health, others; "
         "use safe_get_user_stats for personalized estimated_minutes when needed. "
-        "Ask one concise clarification only if required data is missing."
+        "Do not ask the user to choose category or estimated minutes unless they explicitly want to choose. "
+        "Infer both from task title/context by default and proceed. "
+        "Ask one concise clarification only if the task title/action itself is ambiguous or missing."
     ),
     tools=[
         safe_create_task,
