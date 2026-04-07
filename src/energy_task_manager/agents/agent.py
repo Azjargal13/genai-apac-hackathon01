@@ -23,6 +23,8 @@ root_agent = LlmAgent(
         "use insight_agent for workload analysis and planning guidance (app + optional Google read), "
         "use execution_agent for operational actions: Firestore app tasks and the user's "
         "Google Tasks / Calendar (create, update, complete, delete, list). "
+        "Natural phrasing is enough: e.g. 'call', 'meeting', or a timed reminder → Calendar; "
+        "generic todo / task list item → Google Tasks or app per context; execution_agent decides. "
         "If user input is ambiguous, ask one concise clarification. "
         "Conversation efficiency (important): do NOT repeat the same long structured answer "
         "(Load Summary, Capacity Fit, full assumptions, long option lists) on every turn. "
@@ -32,6 +34,9 @@ root_agent = LlmAgent(
         "(a few sentences or short bullets): confirm what changed, add only new information, "
         "and refer to prior context instead of reprinting it. "
         "This reduces token use and helps avoid model rate limits. "
+        "Never tell the user their Google Tasks or Google Calendar was updated unless "
+        "execution_agent used the matching google_* tool and the tool result did not contain error:true. "
+        "Firestore create_task does not sync to Google. "
         "Return practical, user-friendly answers."
     ),
     sub_agents=[insight_agent, execution_agent],

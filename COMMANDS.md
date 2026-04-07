@@ -113,7 +113,17 @@ python scripts/google_oauth_login.py
 export PYTHONPATH="${PWD}/src"
 python -c "from dotenv import load_dotenv; load_dotenv(); from energy_task_manager.integrations.google_oauth import google_oauth_configured; print('oauth_ok:', google_oauth_configured())"
 python scripts/test_google_tokens.py
+# Prove Tasks write scope (creates + deletes one test task):
+python scripts/test_google_tokens.py --write-smoke
 ```
+
+**Agent said it added to Google Tasks/Calendar but you see nothing**
+
+| Cause | What to check |
+|--------|----------------|
+| **Wrong tool** | In-app **`create_task`** / **`list_tasks`** only touch **Firestore**. Items in the **Google Tasks app** require **`create_google_task`** (and calendar events need **`create_google_calendar_event`**). In **ADK Web**, open the trace/events and confirm those tool names ran. |
+| **Model assumed success** | The model may reply without calling tools. After fixes, Google tools return **`error: true`** if the token is missing; the agent is instructed not to claim success when that happens. |
+| **Token path + `cd src`** | Running **`adk web`** from **`src/`** used to make **`GOOGLE_OAUTH_TOKEN_PATH=secrets/token.json`** point at **`src/secrets/`** (empty). Credentials now resolve **repo-root** paths and load **`<repo>/.env`** automatically when the token is read. |
 
 ---
 

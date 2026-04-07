@@ -27,6 +27,18 @@ def _safe_api(fn: Callable[[], T]) -> T | dict[str, Any]:
             except Exception:
                 pass
         return out
+    except RuntimeError as e:
+        return {
+            "error": True,
+            "message": str(e),
+            "hint": (
+                "OAuth token missing or unreadable. Use an absolute GOOGLE_OAUTH_TOKEN_PATH, "
+                "or keep token at <repo>/secrets/token.json — path resolution now checks repo root "
+                "even when adk runs from src/."
+            ),
+        }
+    except Exception as e:
+        return {"error": True, "message": str(e)}
 
 
 def list_google_tasks(max_results: int = 20, tasklist_id: str | None = None) -> dict[str, Any]:
