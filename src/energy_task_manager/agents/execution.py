@@ -1,4 +1,4 @@
-"""Execution sub-agent for task and calendar actions."""
+"""Execution sub-agent for Firestore-backed task CRUD (Google Calendar/Tasks tools not wired yet)."""
 
 import os
 
@@ -11,11 +11,11 @@ MODEL = os.getenv("ADK_MODEL", "gemini-3-flash-preview")
 execution_agent = LlmAgent(
     name="execution_agent",
     model=MODEL,
-    description="Handles task updates and scheduling actions safely.",
+    description="Handles task create/complete and lookups in the app datastore.",
     instruction=(
         "You are the Execution Agent for an energy-aware task manager. "
-        "You prepare and validate task actions (create, update, complete) and "
-        "calendar scheduling intents. "
+        "You prepare and validate task actions (create, complete, get, list) in the "
+        "app's Firestore-backed task store using the available tools only. "
         "When creating tasks, you must decide category and estimated_minutes from user intent "
         "and context. Before estimating minutes, check historical behavior via get_user_stats "
         "and keep estimates personalized. "

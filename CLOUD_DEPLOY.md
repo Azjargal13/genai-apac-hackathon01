@@ -79,6 +79,25 @@ Do **not** bake API keys into the image. For production:
 
 Local/Codespaces **`.env`** stays gitignored; Cloud Run uses GCP secret wiring.
 
+### Google user OAuth token (Tasks / Calendar)
+
+After you run `scripts/google_oauth_login.py` locally or in Codespaces, you have a **`token.json`** (user refresh token + client fields). For Cloud Run:
+
+1. Create a secret whose **value is the full file contents** of `token.json` (one blob; JSON can be minified to one line).
+2. Grant the **Cloud Run runtime service account** `roles/secretmanager.secretAccessor` on that secret.
+3. On the service, add an environment variable **`GOOGLE_OAUTH_TOKEN_JSON`** referencing the secret (Console: **Edit & deploy new revision** → **Variables & secrets** → **Reference a secret**).
+
+Example (adjust names / region / project):
+
+```bash
+gcloud secrets create google-user-oauth-token --data-file=secrets/token.json
+gcloud run services update YOUR_SERVICE \
+  --set-secrets=GOOGLE_OAUTH_TOKEN_JSON=google-user-oauth-token:latest \
+  --region=YOUR_REGION
+```
+
+The application reads `GOOGLE_OAUTH_TOKEN_JSON` before `GOOGLE_OAUTH_TOKEN_PATH`. Do not commit `token.json`.
+
 ---
 
 ## 5. Optional: GitHub Actions instead of Cloud Build triggers

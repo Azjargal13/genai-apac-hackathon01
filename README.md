@@ -170,7 +170,7 @@ User → Orchestrator → Insight Agent
 | Agents & reasoning | **Google ADK** with **Gemini** (Vertex AI or API per your ADK config) |
 | API | **FastAPI** (`uvicorn` on Cloud Run) |
 | Database | **Cloud Firestore** |
-| External integration | **Google Calendar API** (Python client; exposed to agents as tools) |
+| External integration | **Google Calendar API** + **Google Tasks API** (see [GOOGLE_TASKS_CALENDAR.md](GOOGLE_TASKS_CALENDAR.md)) |
 | Deployment | **Google Cloud Run** (image built by **Cloud Build** on **git push**) |
 | Remote dev | **GitHub Codespaces** + `.devcontainer` — see [CODESPACES.md](CODESPACES.md) |
 | Local secrets | **`.env`** (not committed); copy from `.env.example` |
@@ -195,17 +195,19 @@ hackathon01/
 │       │   └── routes/
 │       │   └── models.py
 │       ├── agents/              # ADK root + sub-agents (orchestrator, insight, execution)
-│       ├── tools/               # ADK tools (Firestore ops, calendar, validation)
-│       ├── integrations/        # Google Calendar API client code
+│       ├── tools/               # ADK tools (Firestore task + planning tools)
+│       ├── integrations/        # OAuth for Google Tasks/Calendar (see GOOGLE_TASKS_CALENDAR.md)
 │       └── persistence/         # Firestore repositories & schemas
 ├── tests/
 ├── .devcontainer/
 │   └── devcontainer.json        # GitHub Codespaces: Python + pip install + PYTHONPATH
 ├── scripts/
-│   └── bootstrap-venv.sh        # Optional: project .venv (Codespaces or Linux)
+│   ├── google_oauth_login.py    # One-time OAuth → secrets/token.json (see GOOGLE_TASKS_CALENDAR.md)
+│   └── bootstrap-venv.sh      # Optional: project .venv (Codespaces or Linux)
 ├── CODESPACES.md                # Dev environment: GitHub Codespaces + ADK / FastAPI
 ├── CLOUD_DEPLOY.md              # GitHub → Cloud Build → Cloud Run (one-time setup)
 ├── FIREBASE_SETUP.md            # Firestore/Firebase setup and auth config
+├── GOOGLE_TASKS_CALENDAR.md     # Calendar + Tasks API integration notes
 ├── SCHEMA.md                    # Firestore collections and field contracts
 ├── BILLING_ESTIMATE.md          # Rough monthly cost (Codespaces + GCP + Gemini)
 ├── cloudbuild.yaml              # Build image + deploy Run (used by trigger)
