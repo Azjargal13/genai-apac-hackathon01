@@ -1,4 +1,14 @@
-"""Per-request context storage for user and session identity."""
+"""Per-request context for user and session identity (FastAPI + tools).
+
+``X-Session-Id`` / ``X-User-Id`` identify who is calling and which *conversation thread*
+it belongs to. For LLM chat, keeping a **stable session id per thread** is the right
+pattern: the model can rely on prior turns in that session instead of you resending
+or restating long summaries every time—pair that with short follow-up replies and
+output token limits (see ``agents/``) to stay within rate limits.
+
+This module is request-scoped (``contextvars``); wire the same ids to ADK ``Session``
+when the HTTP API drives the agent runtime.
+"""
 
 from __future__ import annotations
 

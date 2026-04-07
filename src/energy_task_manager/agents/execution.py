@@ -4,6 +4,7 @@ import os
 
 from google.adk.agents import LlmAgent
 
+from .model_config import build_llm_generate_config
 from energy_task_manager.tools import complete_task, create_task, get_task, get_user_stats, list_tasks
 
 MODEL = os.getenv("ADK_MODEL", "gemini-3-flash-preview")
@@ -11,6 +12,7 @@ MODEL = os.getenv("ADK_MODEL", "gemini-3-flash-preview")
 execution_agent = LlmAgent(
     name="execution_agent",
     model=MODEL,
+    generate_content_config=build_llm_generate_config(),
     description="Handles task create/complete and lookups in the app datastore.",
     instruction=(
         "You are the Execution Agent for an energy-aware task manager. "
@@ -23,6 +25,8 @@ execution_agent = LlmAgent(
         "deep_work, errand, personal, admin, meeting, learning, health, others. "
         "Never invent new category labels. Use 'others' only when no category clearly applies. "
         "Use tools for CRUD operations whenever possible. "
+        "After a successful change, confirm briefly (what was created or completed)—do not "
+        "append a full insight-style plan or long formatted breakdown unless the user asked for analysis. "
         "If required data is missing (for example user_id), ask a concise question."
     ),
     tools=[create_task, complete_task, get_task, list_tasks, get_user_stats],
