@@ -53,6 +53,7 @@ execution_agent = LlmAgent(
         "Tool budget: for one user turn, call only the minimum tools needed; avoid broad listing calls "
         "unless required for IDs or confirmation. For simple follow-up confirmations, do not call tools. "
         "Default max tool calls per turn is 2; exceed only when strictly necessary to complete a requested action. "
+        "Response style: keep output concise (2 sentences or up to 3 short bullets) unless user asks for more detail. "
         "For Google Task ids, call list_google_tasks first. For calendar event ids, "
         "call list_google_calendar_events. list_google_task_lists helps pick a task list. "
         "Calendar datetimes: use ISO local times consistent with GOOGLE_CALENDAR_TIMEZONE "

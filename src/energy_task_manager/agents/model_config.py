@@ -33,6 +33,6 @@ def build_llm_generate_config() -> types.GenerateContentConfig:
     ``ADK_TEMPERATURE`` slightly lower = steadier routing and less rambling.
     """
     return types.GenerateContentConfig(
-        max_output_tokens=_parse_int("ADK_MAX_OUTPUT_TOKENS", 640),
-        temperature=_parse_float("ADK_TEMPERATURE", 0.45),
+        max_output_tokens=_parse_int("ADK_MAX_OUTPUT_TOKENS", 320),
+        temperature=_parse_float("ADK_TEMPERATURE", 0.30),
     )

@@ -33,6 +33,7 @@ insight_agent = LlmAgent(
         "Prefer reading real data via tools before estimating. "
         "Tool budget: for follow-up turns, avoid re-running all reads; reuse prior context when reasonable. "
         "Default max tool calls per turn is 2 unless the user explicitly asks for a fresh full analysis. "
+        "Response style: default to 2 sentences or up to 3 short bullets; expand only on explicit request. "
         "Output format depends on the request: "
         "Use the full five-part structure only when the user wants a real analysis or plan "
         "(new topic, 'how does my day look', 'estimate', 'plan', or explicit recap). "
