@@ -3,8 +3,14 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 
+from dotenv import load_dotenv
 from google.genai import types
+
+# Ensure env vars are loaded even if ADK imports agent modules directly.
+_ROOT = Path(__file__).resolve().parents[3]
+load_dotenv(_ROOT / ".env", override=False)
 
 
 def _parse_int(name: str, default: int, *, lo: int = 64, hi: int = 8192) -> int:
