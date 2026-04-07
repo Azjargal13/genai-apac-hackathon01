@@ -1,15 +1,7 @@
-"""Load Google OAuth user credentials for Tasks and Calendar APIs.
+"""Load user OAuth credentials for Tasks + Calendar (token from ``google_oauth_login.py`` paste flow).
 
-Obtain a user token once (see ``scripts/google_oauth_login.py``), then either:
-
-- **File:** set ``GOOGLE_OAUTH_TOKEN_PATH`` (good for Codespaces / local ``secrets/token.json``).
-- **Env JSON:** set ``GOOGLE_OAUTH_TOKEN_JSON`` to the full token JSON string (typical for
-  **Cloud Run** + **Secret Manager**, where the secret is mounted as an environment variable).
-
-The library refreshes expired access tokens when a refresh_token is present. Refreshed tokens
-are written back only when using the **file** path, not when using ``GOOGLE_OAUTH_TOKEN_JSON``
-(Cloud Run usually does not write back to Secret Manager from the app).
-"""
+``GOOGLE_OAUTH_TOKEN_JSON`` (Cloud Run) or ``GOOGLE_OAUTH_TOKEN_PATH`` (file). Refreshes access
+tokens; file path is updated on refresh, env JSON is not."""
 
 from __future__ import annotations
 
@@ -67,6 +59,17 @@ def get_google_user_credentials() -> Credentials | None:
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         Path(path).write_text(creds.to_json(), encoding="utf-8")
+    return creds
+
+
+def require_google_user_credentials() -> Credentials:
+    """Return credentials or raise with a short hint if the token is missing."""
+    creds = get_google_user_credentials()
+    if creds is None:
+        raise RuntimeError(
+            "Missing Google user OAuth token. Set GOOGLE_OAUTH_TOKEN_PATH or "
+            "GOOGLE_OAUTH_TOKEN_JSON and run scripts/google_oauth_login.py"
+        )
     return creds
 
 

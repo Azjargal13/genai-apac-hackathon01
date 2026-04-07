@@ -24,19 +24,14 @@ Scopes used in code (`integrations/google_oauth.py`):
 
 ### Getting a user token (demo; not Firestore ADC)
 
-Tasks/Calendar need **user OAuth**, separate from the Firestore **service account** (`GOOGLE_APPLICATION_CREDENTIALS` / Cloud Run default SA). **Browser sign-in alone does not create `token.json`.** Use a **Desktop** OAuth client and run `python scripts/google_oauth_login.py` once.
+Tasks/Calendar need **user OAuth** (not the Firestore SA). Use a **Desktop** client JSON + `python scripts/google_oauth_login.py`. **Paste method:** after consent, paste the full `http://localhost:...?code=...` from the address bar (default in Codespaces; see [COMMANDS.md](COMMANDS.md)).
 
-1. Enable **Google Tasks API** and **Google Calendar API** in the GCP project.  
-2. Create a **Desktop** client, download JSON → e.g. `secrets/oauth-client.json` (gitignored).  
-3. Set `GOOGLE_OAUTH_CLIENT_SECRETS_PATH` and `GOOGLE_OAUTH_TOKEN_PATH` in `.env`, run `google_oauth_login.py` → it writes `token.json`.  
-4. **GitHub Codespaces:** forward the **random port** from the script (**Ports** tab), or run login on your laptop and copy `token.json` into `secrets/`.  
-5. **Cloud Run:** store the full `token.json` in **Secret Manager**, map to **`GOOGLE_OAUTH_TOKEN_JSON`** ([CLOUD_DEPLOY.md](CLOUD_DEPLOY.md) §4). The app prefers that env var over a file path.
+1. Enable **Google Tasks API** and **Google Calendar API**.  
+2. Desktop client → save JSON e.g. `secrets/oauth-client.json`.  
+3. `.env`: `GOOGLE_OAUTH_CLIENT_SECRETS_PATH`, `GOOGLE_OAUTH_TOKEN_PATH` → run the script → `token.json`.  
+4. **Cloud Run:** `GOOGLE_OAUTH_TOKEN_JSON` from Secret Manager ([CLOUD_DEPLOY.md](CLOUD_DEPLOY.md) §4).
 
-`gcloud auth application-default login` is **ADC** for GCP tooling — **not** a substitute for this token.
-
-Reuse an old `token.json` only if it matches the same OAuth `client_id`; otherwise run `google_oauth_login.py` again.
-
-Do **not** commit `token.json` or client secrets.
+Do **not** commit `token.json` or client secrets. ADC (`gcloud auth application-default login`) is not this token.
 
 ### Demo only: OAuth consent **Testing** mode
 
@@ -76,11 +71,9 @@ GOOGLE_TASKS_DEFAULT_LIST_ID=@default
 
 ## Next implementation steps in this repo
 
-1. **OAuth:** `integrations/google_oauth.py` — `GOOGLE_OAUTH_TOKEN_JSON` (Cloud Run) or `GOOGLE_OAUTH_TOKEN_PATH` (file). Run once: `python scripts/google_oauth_login.py`.  
-2. Add `integrations/tasks.py` (Tasks API client using `get_google_user_credentials()`).  
-3. Add `integrations/calendar.py` (Calendar events client).  
-4. Register ADK tools: `create_google_task`, `update_google_task`, `list_google_tasks`, `create_calendar_event`, etc.  
-5. Attach those tools to **execution_agent** (writes) and **insight_agent** (reads).
+1. **OAuth:** `integrations/google_oauth.py` + `scripts/google_oauth_login.py` (paste flow).  
+2. **Read clients:** `integrations/tasks.py`, `integrations/calendar.py` — verify with `scripts/test_google_tokens.py`.  
+3. Register ADK tools (create/update/list tasks, calendar events) and attach to **execution_agent** / **insight_agent**.
 
 ---
 

@@ -38,7 +38,7 @@ pip3 install --user -r requirements.txt
 1. Copy **`/.env.example`** → **`.env`** in the repo root (file is gitignored).
 2. Fill values such as **`GOOGLE_API_KEY`** for Gemini / ADK (see Google AI Studio).
 3. For team or CI-style secrets, use **GitHub → Settings → Secrets and variables → Codespaces** and map names your app reads from the environment.
-4. **Google Tasks / Calendar (user OAuth):** enable APIs + Desktop client, then follow [GOOGLE_TASKS_CALENDAR.md](GOOGLE_TASKS_CALENDAR.md) and `scripts/google_oauth_login.py` (forward the OAuth callback port in the **Ports** tab).
+4. **Google Tasks / Calendar (user OAuth):** enable APIs + Desktop client, then `scripts/google_oauth_login.py` — **paste** the redirect URL from the browser ([COMMANDS.md](COMMANDS.md)); optional `--server` + port forward if you prefer.
 
 Never commit **`.env`** or API keys.
 

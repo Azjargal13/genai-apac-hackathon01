@@ -4,10 +4,12 @@ from energy_task_manager.integrations.google_oauth import (
     GOOGLE_TASKS_CALENDAR_SCOPES,
     get_google_user_credentials,
     google_oauth_configured,
+    require_google_user_credentials,
 )
 
 __all__ = [
     "GOOGLE_TASKS_CALENDAR_SCOPES",
     "get_google_user_credentials",
     "google_oauth_configured",
+    "require_google_user_credentials",
 ]

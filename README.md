@@ -202,7 +202,7 @@ hackathon01/
 ├── .devcontainer/
 │   └── devcontainer.json        # GitHub Codespaces: Python + pip install + PYTHONPATH
 ├── scripts/
-│   ├── google_oauth_login.py    # One-time OAuth → secrets/token.json (see GOOGLE_TASKS_CALENDAR.md)
+│   ├── google_oauth_login.py    # OAuth token (paste flow); test_google_tokens.py — verify Tasks + Calendar
 │   └── bootstrap-venv.sh      # Optional: project .venv (Codespaces or Linux)
 ├── COMMANDS.md                  # Copy-paste: ADK, FastAPI, OAuth, curl, git
 ├── CODESPACES.md                # Dev environment: GitHub Codespaces + ADK / FastAPI

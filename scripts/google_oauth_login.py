@@ -1,21 +1,9 @@
 #!/usr/bin/env python3
-"""One-time OAuth login → saves user token for Google Tasks + Calendar.
+"""Save a Google user token for Tasks + Calendar (Desktop OAuth client JSON in ``.env``).
 
-See COMMANDS.md / GOOGLE_TASKS_CALENDAR.md. For a solo demo, set OAuth consent screen
-to **Testing** and add your Gmail under **Test users** in Cloud Console.
-
-Run from repo root: ``python scripts/google_oauth_login.py``
-(needs ``GOOGLE_OAUTH_CLIENT_SECRETS_PATH`` in ``.env``; writes ``GOOGLE_OAUTH_TOKEN_PATH``).
-
-**Why Google shows ``accounts.google.com`` first, then ``localhost``:** OAuth always starts on
-Google's domain (sign-in / consent). The ``redirect_uri=http://localhost:PORT`` in that long URL
-only tells Google *where to send the browser after you approve* so this script can read the
-``code`` parameter. For a **Desktop** OAuth client, loopback (localhost) is required by Google;
-removing it would break the flow unless you switch to a **Web** app with a public HTTPS callback.
-
-**Codespaces:** if you hit ``MismatchingStateError`` or flaky redirects, use
-``python scripts/google_oauth_login.py --paste`` and paste the full URL from the address bar.
-"""
+We use **paste**: open the printed Google URL, sign in, then paste the full
+``http://localhost:...?code=...`` line from the address bar (default in Codespaces).
+Optional ``--server`` for a local redirect server. See COMMANDS.md."""
 
 from __future__ import annotations
 
@@ -41,6 +29,10 @@ from energy_task_manager.integrations.google_oauth import (  # noqa: E402
 
 def _is_codespace() -> bool:
     return bool(os.getenv("CODESPACE_NAME"))
+
+
+def _env_truthy(name: str) -> bool:
+    return os.getenv(name, "").strip().lower() in ("1", "true", "yes")
 
 
 def _redirect_server_port(*, codespace: bool) -> int:
@@ -110,12 +102,7 @@ def _run_oauth_local_server(
         )
         if open_browser:
             webbrowser.open(auth_url, new=1, autoraise=True)
-        print(
-            f"\nThis same Python process is now listening for the OAuth redirect on "
-            f"http://{host}:{actual_port}/ (bind {listen_host}:{actual_port}).\n"
-            "Nothing else needs to ‘start localhost’ — it is this script.\n",
-            file=sys.stderr,
-        )
+        print(f"Listening on {listen_host}:{actual_port}. Open:", auth_url, file=sys.stderr)
         print(f"Please visit this URL to authorize this application: {auth_url}")
         local_server.timeout = None
         last_uri = None
@@ -125,9 +112,7 @@ def _run_oauth_local_server(
             if last_uri and "code=" in last_uri:
                 break
         if not last_uri or "code=" not in last_uri:
-            raise WSGITimeoutError(
-                "No OAuth callback with ?code= received (try --paste or check port forward)"
-            )
+            raise WSGITimeoutError("No callback with ?code= (try without --server / paste method)")
         if last_uri.startswith("http://"):
             authorization_response = "https://" + last_uri[len("http://") :]
         else:
@@ -180,14 +165,16 @@ def main() -> int:
     parser.add_argument(
         "--paste",
         action="store_true",
-        help="Paste redirect URL from browser after consent (reliable on Codespaces)",
+        help="Force paste mode: paste redirect URL after browser consent",
+    )
+    parser.add_argument(
+        "--server",
+        action="store_true",
+        help="Use loopback HTTP server (Codespaces: only if port forward works)",
     )
     args = parser.parse_args()
-    use_paste = args.paste or os.getenv("OAUTH_PASTE_REDIRECT", "").strip().lower() in (
-        "1",
-        "true",
-        "yes",
-    )
+    force_server = args.server or _env_truthy("OAUTH_LOCAL_SERVER")
+    explicit_paste = args.paste or _env_truthy("OAUTH_PASTE_REDIRECT")
 
     client_secrets = os.getenv("GOOGLE_OAUTH_CLIENT_SECRETS_PATH")
     if not client_secrets or not Path(client_secrets).is_file():
@@ -210,19 +197,18 @@ def main() -> int:
     codespace = _is_codespace()
     redirect_port = _redirect_server_port(codespace=codespace)
 
+    if force_server:
+        use_paste = False
+    elif codespace:
+        use_paste = True
+    else:
+        use_paste = explicit_paste
+
     if codespace:
         print(
-            "\n=== GitHub Codespaces / remote container ===\n"
-            "The long URL may start with **https://accounts.google.com/...** — that is normal "
-            "(sign-in). The query string contains **redirect_uri=http://localhost:...** meaning "
-            "**after** you approve, Google sends you back to this machine with a `code`.\n"
-            f"Redirect server port: **{redirect_port}** (forward it in Ports, or use --paste).\n"
-            f"  1) Ports tab → forward **{redirect_port}** (see .devcontainer).\n"
-            "  2) Open the printed Google URL in your **laptop browser**.\n"
-            f"  3) After Allow: browser goes to http://localhost:{redirect_port}/?code=... "
-            "(required for Desktop OAuth — not a bug).\n"
-            "If you see **MismatchingStateError** or flaky redirects: "
-            "`python scripts/google_oauth_login.py --paste` and paste the address-bar URL.\n",
+            "\nCodespaces: using **paste** (copy redirect URL from the browser). "
+            "Optional: `--server` + port forward on "
+            f"{redirect_port}.\n",
             file=sys.stderr,
         )
     else:
@@ -236,7 +222,8 @@ def main() -> int:
 
     if use_paste:
         print(
-            "\n>>> --paste mode: no local redirect server. Approve in browser, then paste URL.\n",
+            "\n>>> Paste mode: open the Google URL below, sign in, click Allow — then paste the "
+            "full localhost URL from the address bar (same run; do not reuse an old URL).\n",
             file=sys.stderr,
         )
         creds = _oauth_via_pasted_redirect(
@@ -247,10 +234,7 @@ def main() -> int:
         )
     else:
         print(
-            "\n>>> Leave this command RUNNING until you see 'Saved credentials' below.\n"
-            ">>> Google's redirect goes to a tiny server inside this Python process — if you\n"
-            "    Ctrl+C or close the terminal first, you get ERR_CONNECTION_REFUSED on localhost.\n"
-            ">>> (Using a venv or not does not matter; the process must stay alive.)\n",
+            "\nServer mode: keep this terminal open until you see Saved credentials.\n",
             file=sys.stderr,
         )
         creds = _run_oauth_local_server(

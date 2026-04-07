@@ -105,46 +105,14 @@ export PYTHONPATH="${PWD}/src"
 python scripts/google_oauth_login.py
 ```
 
-**Why the browser goes to `accounts.google.com` first, then `localhost`:**  
-Sign-in always happens on Google. The `redirect_uri=http://localhost:PORT` in that long URL is where Google sends you **after** you click Allow so your app can read the `code`. **Desktop OAuth clients must use loopback** (`localhost` / `127.0.0.1`); you cannot “remove localhost” without switching to a **Web** OAuth client and a public HTTPS redirect URL.
+**Login flow:** we use **paste** — open the printed Google URL, approve access, then paste the full `http://localhost:...?code=...` URL from the address bar into the terminal (Codespaces default). Optional loopback server: `--server` or `OAUTH_LOCAL_SERVER=1` (needs port forward). Local desktop only: `--paste` if you want paste there.
 
-**Codespaces / `MismatchingStateError`:** use paste mode (no redirect server):
-
-```bash
-export PYTHONPATH="${PWD}/src"
-python scripts/google_oauth_login.py --paste
-```
-
-Or set `OAUTH_PASTE_REDIRECT=1`. After consent, copy the **full** URL from the address bar (even if the page errors) and paste into the terminal.
-
-**If Google sign-in never appears**
-
-- The script always prints `Please visit this URL to authorize...` — open **that** `https://accounts.google.com/...` link in your browser (auto-open often fails on **Codespaces**, **SSH**, or **headless**).
-
-**Codespaces: blank page after “Allow” on `localhost`**
-
-- Google redirects to `http://localhost:PORT/?code=...` on **your laptop**. That port must tunnel to the container **before** you finish consent.
-- This repo uses a **fixed port `55555`** for the redirect when `CODESPACE_NAME` is set (override with `OAUTH_REDIRECT_PORT`). **`.devcontainer`** pre-lists **55555** — check **Ports** and forward it, **then** open the Google URL and approve.
-- If 55555 is busy, set `OAUTH_REDIRECT_PORT=55666` in `.env`, forward **55666**, and re-run the script.
-- **Easiest bypass:** run `google_oauth_login.py` on your **local PC** once, then copy `secrets/token.json` into the Codespace.
-
-**Local machine:** set `OAUTH_NO_BROWSER=1` and use the printed URL only if the browser does not open.
-
-**`ERR_CONNECTION_REFUSED` on localhost after Google**
-
-- The terminal running `python scripts/google_oauth_login.py` must **still be running** (waiting). **Do not Ctrl+C** until you see `Saved credentials`. A venv is optional; what matters is that **this Python process** is listening.
-- **Codespaces:** in **Ports**, the redirect port (default **55555**) must show as **forwarded** to your laptop before you finish the Google consent screen.
-- If it keeps failing: run the script **on your local PC** once, then copy `secrets/token.json` into the remote environment.
-
-**`MismatchingStateError` / CSRF state not equal**
-
-- The script skips spurious first hits (port probe / favicon) and only accepts a callback that contains `?code=`. It also avoids corrupting `iss=https://...` in the query string. Use **one** fresh run (don’t reuse an old Google URL). If it still fails, use **`--paste`** (above).
-
-**Check token visible to the app:**
+**Check token / APIs:**
 
 ```bash
 export PYTHONPATH="${PWD}/src"
 python -c "from dotenv import load_dotenv; load_dotenv(); from energy_task_manager.integrations.google_oauth import google_oauth_configured; print('oauth_ok:', google_oauth_configured())"
+python scripts/test_google_tokens.py
 ```
 
 ---
