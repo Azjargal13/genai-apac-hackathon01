@@ -10,6 +10,7 @@ This folder is for developer/internal operational docs.
 - [Firebase / Firestore setup](firebase.md)
 - [Google Tasks + Calendar integration](google-tasks-calendar.md)
 - [IAM notes](iam.md)
+- [Billing estimate](billing-estimate.md)
 
 ## Related
 

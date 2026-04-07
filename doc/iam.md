@@ -1,5 +1,8 @@
-# IAM Notes
+Add Service account for Firestore
 
-Primary source: [`../IAM.md`](../IAM.md)
+# gcloud projects add-iam-policy-binding gen-ai-hackathon01 \
+#   --member="serviceAccount:energy-task-sa@gen-ai-hackathon01.iam.gserviceaccount.com" \
+#   --role="roles/datastore.user"
 
-Contains service account and role notes used for Firestore and deployment permissions.
+#   gcloud iam service-accounts keys create energy-task-sa-key.json \
+#   --iam-account="energy-task-sa@gen-ai-hackathon01.iam.gserviceaccount.com"

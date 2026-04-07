@@ -31,7 +31,7 @@ GitHub **public repos** and typical **Actions** usage for a small team often sta
 ## Assumptions used below
 
 - GCP region **us-central1** for Run / Build / Artifact Registry examples; prices vary by region.
-- **No Cloud Workstations** (dev is Codespaces per [CODESPACES.md](CODESPACES.md)).
+- **No Cloud Workstations** (dev is Codespaces per [codespaces.md](codespaces.md)).
 - Cloud Run: **low traffic** hackathon API (not always-on high QPS).
 - Firestore: **small** dataset and modest read/write rates.
 - Gemini: **two illustrative volumes** (light vs heavier prototyping).
@@ -137,7 +137,7 @@ If **Gemini usage spikes** or you run **many** active codespaces, totals can go 
 
 ## After your Codespace is ready
 
-Open a codespace, let dependencies install (or run `pip3 install --user -r requirements.txt`), then start implementing agents (ADK `LlmAgent` graph, tools, Firestore) and the FastAPI surface. **`git push`** triggers your **Cloud Build** pipeline when configured — see [CLOUD_DEPLOY.md](CLOUD_DEPLOY.md).
+Open a codespace, let dependencies install (or run `pip3 install --user -r requirements.txt`), then start implementing agents (ADK `LlmAgent` graph, tools, Firestore) and the FastAPI surface. **`git push`** triggers your **Cloud Build** pipeline when configured — see [cloud-deploy.md](cloud-deploy.md).
 
 ---
 

@@ -37,6 +37,6 @@ Close with deployment: **Cloud Run**, **Firestore**, **Secret Manager** for toke
 ## Repo pointers for judges
 
 - Architecture & features: [README.md](../README.md)
-- Google Tasks + Calendar integration: [GOOGLE_TASKS_CALENDAR.md](../GOOGLE_TASKS_CALENDAR.md)
+- Google Tasks + Calendar integration: [Google Tasks + Calendar](../doc/google-tasks-calendar.md)
 - Hackathon requirements alignment: [PROBLEM_STATEMENT.md](../PROBLEM_STATEMENT.md)
-- Deploy path: [CLOUD_DEPLOY.md](../CLOUD_DEPLOY.md)
+- Deploy path: [Cloud deploy](../doc/cloud-deploy.md)

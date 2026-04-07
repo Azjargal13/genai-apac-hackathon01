@@ -1,5 +1,220 @@
-# Commands Cheat Sheet
+# Command cheat sheet
 
-Primary source: [`../COMMANDS.md`](../COMMANDS.md)
+Copy-paste reference. Run from **repository root** unless noted. On Windows Git Bash/WSL, paths and `export` work the same.
 
-Use this for local run commands, OAuth scripts, API curl examples, and deployment commands.
+---
+
+## Setup
+
+```bash
+cp .env.example .env
+# Edit .env (never commit real secrets)
+
+pip3 install --user -r requirements.txt
+# or: pip install -r requirements.txt  (inside a venv)
+
+export PYTHONPATH="${PWD}/src"
+```
+
+**Optional venv (Linux/macOS/Codespaces):**
+
+```bash
+bash scripts/bootstrap-venv.sh
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+---
+
+## ADK (demo / CLI chat)
+
+From repo root:
+
+```bash
+cd src
+adk run energy_task_manager
+```
+
+**Web UI:**
+
+```bash
+cd src
+adk web --port 8000
+```
+
+Forward port **8000** in the Ports panel (Codespaces). Package entry: `energy_task_manager` → `root_agent` in `agent.py`.
+
+---
+
+## FastAPI (local API)
+
+From repo root:
+
+```bash
+export PYTHONPATH="${PWD}/src"
+uvicorn energy_task_manager.main:app --host 0.0.0.0 --port 8080
+```
+
+Forward **8080** (Codespaces). Check **`GET /health`**.
+
+---
+
+## Google OAuth (Tasks / Calendar token)
+
+### Where the OAuth client JSON comes from (Google Cloud Console)
+
+Use the **same GCP project** where you enabled Tasks API + Calendar API.
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/) and select your project (top bar).
+2. **APIs & Services** → **Credentials** (left menu).
+3. **+ Create credentials** → **OAuth client ID**.
+4. If asked for a **consent screen** first: see **Demo: Testing mode** below, then return to Credentials.
+5. **Application type:** choose **Desktop app** (name it anything, e.g. `energy-task-demo`).
+6. **Create** → **Download JSON** (arrow icon). That file is your client secret JSON.
+
+### Demo: OAuth consent in **Testing** (only you / invited testers)
+
+For a **hackathon or internal demo**, keep the app **unpublished** so random users cannot sign in—only accounts you allow.
+
+1. **APIs & Services** → **OAuth consent screen** (not Credentials).
+2. **User type:** **External** is fine (unless you use a Workspace-only internal option).
+3. **Publishing status:** leave **Testing** (do **not** click *Publish app* unless you go through Google verification).
+4. **Test users:** **+ Add users** → add the **exact Gmail address(es)** that will run `google_oauth_login.py` and the demo (yourself only is OK). Only these accounts can complete consent while status is Testing (Google limit ~100 test users).
+5. Save scopes as needed (Tasks + Calendar are requested at login time by the script).
+
+Anyone **not** listed as a test user will see an error when trying to authorize—good for “showcase only.” For production you’d publish + verify the app; that’s out of scope for a quick demo.
+
+Put the client JSON in the repo (do **not** commit):
+
+```bash
+mkdir -p secrets
+# Save the downloaded file as e.g. secrets/oauth-client.json
+```
+
+In **`.env`** (repo root):
+
+```env
+GOOGLE_OAUTH_CLIENT_SECRETS_PATH=secrets/oauth-client.json
+GOOGLE_OAUTH_TOKEN_PATH=secrets/token.json
+```
+
+Then run:
+
+```bash
+export PYTHONPATH="${PWD}/src"
+python scripts/google_oauth_login.py
+```
+
+**Login flow:** we use **paste** — open the printed Google URL, approve access, then paste the full `http://localhost:...?code=...` URL from the address bar into the terminal (Codespaces default). Optional loopback server: `--server` or `OAUTH_LOCAL_SERVER=1` (needs port forward). Local desktop only: `--paste` if you want paste there.
+
+**Check token / APIs:**
+
+```bash
+export PYTHONPATH="${PWD}/src"
+python -c "from dotenv import load_dotenv; load_dotenv(); from energy_task_manager.integrations.google_oauth import google_oauth_configured; print('oauth_ok:', google_oauth_configured())"
+python scripts/test_google_tokens.py
+# Prove Tasks write scope (creates + deletes one test task):
+python scripts/test_google_tokens.py --write-smoke
+```
+
+**Agent said it added to Google Tasks/Calendar but you see nothing**
+
+| Cause | What to check |
+|--------|----------------|
+| **Wrong tool** | In-app **`create_task`** / **`list_tasks`** only touch **Firestore**. Items in the **Google Tasks app** require **`create_google_task`** (and calendar events need **`create_google_calendar_event`**). In **ADK Web**, open the trace/events and confirm those tool names ran. |
+| **Model assumed success** | The model may reply without calling tools. After fixes, Google tools return **`error: true`** if the token is missing; the agent is instructed not to claim success when that happens. |
+| **Token path + `cd src`** | Running **`adk web`** from **`src/`** used to make **`GOOGLE_OAUTH_TOKEN_PATH=secrets/token.json`** point at **`src/secrets/`** (empty). Credentials now resolve **repo-root** paths and load **`<repo>/.env`** automatically when the token is read. |
+
+---
+
+## API examples (`curl`)
+
+Assumes API at `http://localhost:8080` and headers as in `.env` / README.
+
+**Create task**
+
+```bash
+curl -X POST "http://localhost:8080/task" \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: beta-user-1" \
+  -H "X-Session-Id: s1" \
+  -d '{"title":"Write architecture overview"}'
+```
+
+**Complete task**
+
+```bash
+curl -X POST "http://localhost:8080/task/<task_id>/complete" \
+  -H "X-User-Id: beta-user-1" \
+  -H "X-Session-Id: s1"
+```
+
+**Plan day**
+
+```bash
+curl -X POST "http://localhost:8080/plan" \
+  -H "Content-Type: application/json" \
+  -H "X-User-Id: beta-user-1" \
+  -d '{"total_available_time_minutes":360}'
+```
+
+**Smoke script** (with API running):
+
+```bash
+bash scripts/smoke_test.sh
+```
+
+---
+
+## Git
+
+```bash
+git status
+git add -A
+git commit -m "Describe change"
+git push origin main
+```
+
+---
+
+## Deploy / GCP (see [cloud-deploy.md](cloud-deploy.md))
+
+**Enable APIs (example):**
+
+```bash
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com iam.googleapis.com
+```
+
+**OAuth token → Secret Manager → Cloud Run (example):**
+
+```bash
+gcloud secrets create google-user-oauth-token --data-file=secrets/token.json
+gcloud run services update YOUR_SERVICE \
+  --set-secrets=GOOGLE_OAUTH_TOKEN_JSON=google-user-oauth-token:latest \
+  --region=YOUR_REGION
+```
+
+---
+
+## Env vars (reminder)
+
+| Variable | Purpose |
+|----------|---------|
+| `ADK_MODEL` | Gemini model id for agents |
+| `ADK_MAX_OUTPUT_TOKENS` / `ADK_TEMPERATURE` | Shorter, steadier replies |
+| `GOOGLE_CLOUD_PROJECT` / `FIRESTORE_DATABASE_ID` | Firestore |
+| `GOOGLE_APPLICATION_CREDENTIALS` | SA JSON (local/Codespaces; not needed on Cloud Run with IAM) |
+| `GOOGLE_OAUTH_*` | User token for Google Tasks/Calendar |
+
+Full list: [.env.example](../.env.example).
+
+---
+
+## Deeper docs
+
+| Topic | File |
+|--------|------|
+| Codespaces | [codespaces.md](codespaces.md) |
+| Cloud Build / Run | [cloud-deploy.md](cloud-deploy.md) |
+| Firestore | [firebase.md](firebase.md) |
+| Google Tasks + Calendar | [google-tasks-calendar.md](google-tasks-calendar.md) |
