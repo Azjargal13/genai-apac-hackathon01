@@ -22,6 +22,8 @@ Instead of just organizing tasks, it provides **personalized decision support**:
 
 ## 🎤 Pitch
 
+**Pitch pack (slides / judge prep):** see the [`pitch/`](pitch/) folder—problem, USP, tech, Google stack, opportunities, and a suggested demo script.
+
 Most people do not fail to plan. They fail to plan against reality.
 
 This system helps users who tend to overestimate their capacity and underestimate how long tasks actually take.  
