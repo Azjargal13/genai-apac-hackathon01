@@ -68,6 +68,12 @@ export PYTHONPATH="${PWD}/src"
 python scripts/google_oauth_login.py
 ```
 
+**If Google sign-in never appears**
+
+- The script always prints `Please visit this URL to authorize...` — open **that** `https://accounts.google.com/...` link in your browser (auto-open often fails on **Codespaces**, **SSH**, or **headless**).
+- **Codespaces:** open the **Ports** tab and forward the **localhost port** printed next to the redirect URL (`http://localhost:XXXX/`), then complete sign-in so the redirect reaches the container.
+- **Local machine:** set `OAUTH_NO_BROWSER=1` and use the printed URL only.
+
 **Check token visible to the app:**
 
 ```bash

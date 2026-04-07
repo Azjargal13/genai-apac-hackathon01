@@ -26,6 +26,19 @@ from energy_task_manager.integrations.google_oauth import (  # noqa: E402
 )
 
 
+def _is_codespace() -> bool:
+    return bool(os.getenv("CODESPACE_NAME"))
+
+
+def _open_browser() -> bool:
+    if os.getenv("OAUTH_NO_BROWSER", "").strip().lower() in ("1", "true", "yes"):
+        return False
+    # Remote dev: browser on the server cannot show on your laptop; use printed URL + port forward.
+    if _is_codespace():
+        return False
+    return True
+
+
 def main() -> int:
     client_secrets = os.getenv("GOOGLE_OAUTH_CLIENT_SECRETS_PATH")
     if not client_secrets or not Path(client_secrets).is_file():
@@ -44,7 +57,38 @@ def main() -> int:
         client_secrets,
         list(GOOGLE_TASKS_CALENDAR_SCOPES),
     )
-    creds = flow.run_local_server(port=0, open_browser=True)
+
+    codespace = _is_codespace()
+    if codespace:
+        print(
+            "\n=== GitHub Codespaces detected ===\n"
+            "The Google sign-in page will NOT open automatically on your laptop.\n"
+            "1. When the script prints 'Please visit this URL...', copy that full https:// URL "
+            "and open it in your normal browser.\n"
+            "2. In VS Code / Cursor: Ports tab → forward the port shown in "
+            "'http://localhost:PORT' (the redirect server).\n"
+            "3. After you approve Google, the browser redirects to http://127.0.0.1:PORT/ — "
+            "that must hit the Codespace via the forwarded port.\n",
+            file=sys.stderr,
+        )
+    else:
+        print(
+            "\nIf no browser tab opens: copy the 'Please visit this URL...' line from below, "
+            "or set OAUTH_NO_BROWSER=1 and open that URL manually.\n",
+            file=sys.stderr,
+        )
+
+    # Bind on all interfaces in Codespaces so forwarded ports reach the redirect server.
+    run_kw: dict = {
+        "port": 0,
+        "open_browser": _open_browser(),
+        "access_type": "offline",
+        "prompt": "consent",
+    }
+    if codespace:
+        run_kw["bind_addr"] = "0.0.0.0"
+
+    creds = flow.run_local_server(**run_kw)
 
     parent = Path(token_path).resolve().parent
     if str(parent) not in ("", "."):
