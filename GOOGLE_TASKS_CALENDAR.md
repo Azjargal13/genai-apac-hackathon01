@@ -38,6 +38,10 @@ Reuse an old `token.json` only if it matches the same OAuth `client_id`; otherwi
 
 Do **not** commit `token.json` or client secrets.
 
+### Demo only: OAuth consent **Testing** mode
+
+In Cloud Console → **APIs & Services** → **OAuth consent screen**: keep **Publishing status** as **Testing** and add **Test users** (your Gmail only for a solo demo). While in Testing, **only** those accounts can finish sign-in; others are blocked—ideal for showcasing without opening access to the public. See [COMMANDS.md](COMMANDS.md) for step-by-step with Credentials.
+
 ---
 
 ## Execution agent — write paths (API design)

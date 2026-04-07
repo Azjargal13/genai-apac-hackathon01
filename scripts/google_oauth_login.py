@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """One-time OAuth login → saves user token for Google Tasks + Calendar.
 
-See GOOGLE_TASKS_CALENDAR.md. Run from repo root: ``python scripts/google_oauth_login.py``
+See COMMANDS.md / GOOGLE_TASKS_CALENDAR.md. For a solo demo, set OAuth consent screen
+to **Testing** and add your Gmail under **Test users** in Cloud Console.
+
+Run from repo root: ``python scripts/google_oauth_login.py``
 (needs ``GOOGLE_OAUTH_CLIENT_SECRETS_PATH`` in ``.env``; writes ``GOOGLE_OAUTH_TOKEN_PATH``).
 """
 
@@ -28,6 +31,21 @@ from energy_task_manager.integrations.google_oauth import (  # noqa: E402
 
 def _is_codespace() -> bool:
     return bool(os.getenv("CODESPACE_NAME"))
+
+
+def _redirect_server_port(*, codespace: bool) -> int:
+    """Fixed port in Codespaces so devcontainer can pre-forward; 0 = random (local desktop)."""
+    raw = os.getenv("OAUTH_REDIRECT_PORT", "").strip()
+    if raw:
+        try:
+            p = int(raw)
+            if 1024 <= p <= 65535:
+                return p
+        except ValueError:
+            pass
+    if codespace:
+        return 55555
+    return 0
 
 
 def _open_browser() -> bool:
@@ -59,16 +77,21 @@ def main() -> int:
     )
 
     codespace = _is_codespace()
+    redirect_port = _redirect_server_port(codespace=codespace)
+
     if codespace:
         print(
-            "\n=== GitHub Codespaces detected ===\n"
-            "The Google sign-in page will NOT open automatically on your laptop.\n"
-            "1. When the script prints 'Please visit this URL...', copy that full https:// URL "
-            "and open it in your normal browser.\n"
-            "2. In VS Code / Cursor: Ports tab → forward the port shown in "
-            "'http://localhost:PORT' (the redirect server).\n"
-            "3. After you approve Google, the browser redirects to http://127.0.0.1:PORT/ — "
-            "that must hit the Codespace via the forwarded port.\n",
+            "\n=== GitHub Codespaces / remote container ===\n"
+            f"The redirect server will use port **{redirect_port}** on localhost.\n"
+            "Do this ORDER:\n"
+            f"  1) Ports tab → ensure port {redirect_port} is forwarded (this repo's devcontainer "
+            "lists it; or add it manually *before* you finish Google).\n"
+            "  2) Copy the 'Please visit this URL...' https://accounts.google.com/... line below "
+            "and open it in your **normal laptop browser**.\n"
+            f"  3) After you click Allow, Google sends you to http://localhost:{redirect_port}/?code=...\n"
+            "     That only works if step (1) is done — otherwise you get a blank / connection error.\n"
+            "  Alternative: run this same script on your **local PC** once, then copy secrets/token.json "
+            "into the container.\n",
             file=sys.stderr,
         )
     else:
@@ -80,7 +103,7 @@ def main() -> int:
 
     # Bind on all interfaces in Codespaces so forwarded ports reach the redirect server.
     run_kw: dict = {
-        "port": 0,
+        "port": redirect_port,
         "open_browser": _open_browser(),
         "access_type": "offline",
         "prompt": "consent",

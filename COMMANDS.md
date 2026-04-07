@@ -61,7 +61,44 @@ Forward **8080** (Codespaces). Check **`GET /health`**.
 
 ## Google OAuth (Tasks / Calendar token)
 
-Prereqs: Desktop OAuth client JSON in `secrets/`, vars in `.env` — see [GOOGLE_TASKS_CALENDAR.md](GOOGLE_TASKS_CALENDAR.md).
+### Where the OAuth client JSON comes from (Google Cloud Console)
+
+Use the **same GCP project** where you enabled Tasks API + Calendar API.
+
+1. Open [Google Cloud Console](https://console.cloud.google.com/) and select your project (top bar).
+2. **APIs & Services** → **Credentials** (left menu).
+3. **+ Create credentials** → **OAuth client ID**.
+4. If asked for a **consent screen** first: see **Demo: Testing mode** below, then return to Credentials.
+5. **Application type:** choose **Desktop app** (name it anything, e.g. `energy-task-demo`).
+6. **Create** → **Download JSON** (arrow icon). That file is your client secret JSON.
+
+### Demo: OAuth consent in **Testing** (only you / invited testers)
+
+For a **hackathon or internal demo**, keep the app **unpublished** so random users cannot sign in—only accounts you allow.
+
+1. **APIs & Services** → **OAuth consent screen** (not Credentials).
+2. **User type:** **External** is fine (unless you use a Workspace-only internal option).
+3. **Publishing status:** leave **Testing** (do **not** click *Publish app* unless you go through Google verification).
+4. **Test users:** **+ Add users** → add the **exact Gmail address(es)** that will run `google_oauth_login.py` and the demo (yourself only is OK). Only these accounts can complete consent while status is Testing (Google limit ~100 test users).
+5. Save scopes as needed (Tasks + Calendar are requested at login time by the script).
+
+Anyone **not** listed as a test user will see an error when trying to authorize—good for “showcase only.” For production you’d publish + verify the app; that’s out of scope for a quick demo.
+
+Put the client JSON in the repo (do **not** commit):
+
+```bash
+mkdir -p secrets
+# Save the downloaded file as e.g. secrets/oauth-client.json
+```
+
+In **`.env`** (repo root):
+
+```env
+GOOGLE_OAUTH_CLIENT_SECRETS_PATH=secrets/oauth-client.json
+GOOGLE_OAUTH_TOKEN_PATH=secrets/token.json
+```
+
+Then run:
 
 ```bash
 export PYTHONPATH="${PWD}/src"
@@ -71,8 +108,15 @@ python scripts/google_oauth_login.py
 **If Google sign-in never appears**
 
 - The script always prints `Please visit this URL to authorize...` — open **that** `https://accounts.google.com/...` link in your browser (auto-open often fails on **Codespaces**, **SSH**, or **headless**).
-- **Codespaces:** open the **Ports** tab and forward the **localhost port** printed next to the redirect URL (`http://localhost:XXXX/`), then complete sign-in so the redirect reaches the container.
-- **Local machine:** set `OAUTH_NO_BROWSER=1` and use the printed URL only.
+
+**Codespaces: blank page after “Allow” on `localhost`**
+
+- Google redirects to `http://localhost:PORT/?code=...` on **your laptop**. That port must tunnel to the container **before** you finish consent.
+- This repo uses a **fixed port `55555`** for the redirect when `CODESPACE_NAME` is set (override with `OAUTH_REDIRECT_PORT`). **`.devcontainer`** pre-lists **55555** — check **Ports** and forward it, **then** open the Google URL and approve.
+- If 55555 is busy, set `OAUTH_REDIRECT_PORT=55666` in `.env`, forward **55666**, and re-run the script.
+- **Easiest bypass:** run `google_oauth_login.py` on your **local PC** once, then copy `secrets/token.json` into the Codespace.
+
+**Local machine:** set `OAUTH_NO_BROWSER=1` and use the printed URL only if the browser does not open.
 
 **Check token visible to the app:**
 

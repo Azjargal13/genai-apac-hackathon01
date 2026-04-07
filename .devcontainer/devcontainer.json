@@ -10,9 +10,10 @@
     }
   },
   "postCreateCommand": "pip3 install --user -r requirements.txt",
-  "forwardPorts": [8080, 8000],
+  "forwardPorts": [8080, 8000, 55555],
   "portsAttributes": {
     "8080": { "label": "FastAPI / Cloud Run local" },
-    "8000": { "label": "ADK web (optional)" }
+    "8000": { "label": "ADK web (optional)" },
+    "55555": { "label": "OAuth redirect (google_oauth_login.py)" }
   }
 }
