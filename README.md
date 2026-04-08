@@ -9,7 +9,7 @@
 
 [Video Intro](https://1drv.ms/f/c/a190ab0b17131679/IgA8zQVHOqonTaCcT5aoNR79ARZ1_0VGsovwfqPh86Q2eSY?e=mH3b1P)
 
-[Product Demo](https://1drv.ms/f/c/a190ab0b17131679/IgBhv43-nU2MSp_tDjsB_CYCAf4XOobgj6YBFASYtQfhe7c?e=07yOgZ)
+[Product Demo](https://1drv.ms/f/c/a190ab0b17131679/IgBhv43-nU2MSp_tDjsB_CYCAf4XOobgj6YBFASYtQfhe7c?e=VbwRUq)
 ## What This Project Does
 
 This project is a multi-agent assistant for daily task planning and execution.
