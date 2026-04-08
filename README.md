@@ -2,6 +2,14 @@
 
 > AI that learns your work pace, detects overload early, and helps plan sustainably.
 
+---
+**Short Links** 
+
+[Pitch PPT](https://docs.google.com/presentation/d/1eXL2bCcLqNxBW0K7Uh9GH2ts53FYzYxv/edit?usp=sharing&ouid=112622331365385679761&rtpof=true&sd=true)
+
+[Video Intro](https://1drv.ms/f/c/a190ab0b17131679/IgA8zQVHOqonTaCcT5aoNR79ARZ1_0VGsovwfqPh86Q2eSY?e=mH3b1P)
+
+[Product Demo](https://1drv.ms/f/c/a190ab0b17131679/IgBhv43-nU2MSp_tDjsB_CYCAf4XOobgj6YBFASYtQfhe7c?e=07yOgZ)
 ## What This Project Does
 
 This project is a multi-agent assistant for daily task planning and execution.
